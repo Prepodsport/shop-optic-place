@@ -1,0 +1,47 @@
+name: Local vLLM Qwen + Ollama Embeddings
+version: 1.0.0
+schema: v1
+
+models:
+  - name: vLLM Qwen2.5-Coder 7B (Chat/Edit/Apply)
+    provider: openai
+    apiBase: http://localhost:8001/v1
+    model: qwen2.5-coder-7b
+    capabilities: []   # оставляем без tool_use
+    roles: [chat, edit, apply]
+    chatOptions:
+      baseSystemMessage: |
+        You are a senior software engineer.
+        Use the provided context (files/folder/codebase snippets).
+        Do not ask me to paste code if context items are present.
+        When proposing changes, prefer minimal diffs.
+    defaultCompletionOptions:
+      contextLength: 8192
+      maxTokens: 748
+      temperature: 0.5
+
+  - name: vLLM Qwen2.5-Coder 7B (Autocomplete)
+    provider: openai
+    apiBase: http://localhost:8001/v1
+    model: qwen2.5-coder-7b
+    capabilities: []
+    roles: [autocomplete]
+    defaultCompletionOptions:
+      contextLength: 2048
+      maxTokens: 512
+      temperature: 0.1
+
+  - name: Ollama Embeddings (nomic)
+    provider: ollama
+    apiBase: http://localhost:11434
+    model: nomic-embed-text:latest
+    roles: [embed]
+
+context:
+  - provider: file
+  - provider: folder
+  - provider: codebase
+  - provider: repo-map
+  - provider: diff
+  - provider: terminal
+  - provider: problems

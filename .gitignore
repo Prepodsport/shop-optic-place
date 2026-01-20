@@ -1,0 +1,36 @@
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+db.sqlite3
+*.log
+
+# Django uploads / generated
+backend/media/
+backend/staticfiles/
+staticfiles/
+media/
+
+# --- Node / React ---
+node_modules/
+**/node_modules/
+dist/
+build/
+coverage/
+.vite/
+.next/
+out/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- IDE ---
+.idea/
+*.iml
+
+# --- temp / tooling ---
+tmpclaude-*
+backend/tmpclaude-*
+frontend/tmpclaude-*

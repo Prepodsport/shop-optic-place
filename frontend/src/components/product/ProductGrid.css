@@ -1,0 +1,107 @@
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Пустое состояние */
+.product-grid__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.product-grid__empty svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.product-grid__empty h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.product-grid__empty p {
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Скелетон загрузки */
+.product-grid__skeleton {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.product-grid__skeleton-image {
+  padding-top: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--bg) 25%,
+    var(--card) 50%,
+    var(--bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.product-grid__skeleton-content {
+  padding: 16px;
+}
+
+.product-grid__skeleton-text {
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--bg) 25%,
+    var(--card) 50%,
+    var(--bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 12px;
+}
+
+.product-grid__skeleton-text--short {
+  width: 40%;
+  height: 12px;
+}
+
+.product-grid__skeleton-text--medium {
+  width: 60%;
+  height: 20px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

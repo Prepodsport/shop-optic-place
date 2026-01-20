@@ -1,0 +1,23 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  /* значение приходит из inline style в Layout.jsx */
+  --top-offset: 0px;
+  --header-height: 0px;
+
+  padding-top: var(--top-offset);
+  transition: padding-top 0.3s ease;
+}
+
+.layout__main {
+  flex: 1;
+  padding: 24px 0;
+}
+
+.layout__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
+}

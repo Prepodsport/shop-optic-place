@@ -1,0 +1,86 @@
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tabs__item {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* Underline вариант */
+.tabs--underline {
+  border-bottom: 1px solid var(--border);
+  gap: 0;
+}
+
+.tabs--underline .tabs__item {
+  padding: 12px 24px;
+  border-radius: 0;
+}
+
+.tabs--underline .tabs__item::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.tabs--underline .tabs__item:hover {
+  color: var(--text);
+}
+
+.tabs--underline .tabs__item--active {
+  color: var(--primary);
+}
+
+.tabs--underline .tabs__item--active::after {
+  transform: scaleX(1);
+}
+
+/* Pills вариант */
+.tabs--pills .tabs__item {
+  border-radius: 20px;
+  padding: 8px 18px;
+}
+
+.tabs--pills .tabs__item:hover {
+  background: var(--card);
+  color: var(--text);
+}
+
+.tabs--pills .tabs__item--active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Bordered вариант */
+.tabs--bordered .tabs__item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
+.tabs--bordered .tabs__item:hover {
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.tabs--bordered .tabs__item--active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
