@@ -129,6 +129,7 @@
   margin-top: 14px;
   font-size: 14px;
   color: var(--muted);
+  text-align: center;
 }
 
 .auth__muted {
@@ -178,7 +179,6 @@
 
 /* Ссылка на забытый пароль */
 .auth__forgot {
-  text-align: right;
   margin-top: -6px;
 }
 

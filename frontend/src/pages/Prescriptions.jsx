@@ -379,7 +379,7 @@ export default function Prescriptions() {
 
                 <div className="prescriptions__form-section">
                   <h3>Правый глаз (OD)</h3>
-                  <div className="prescriptions__form-row prescriptions__form-row--4">
+                  <div className="prescriptions__form-row">
                     <div className="prescriptions__form-field">
                       <label>SPH</label>
                       <input
@@ -456,7 +456,7 @@ export default function Prescriptions() {
 
                 <div className="prescriptions__form-section">
                   <h3>Левый глаз (OS)</h3>
-                  <div className="prescriptions__form-row prescriptions__form-row--4">
+                  <div className="prescriptions__form-row">
                     <div className="prescriptions__form-field">
                       <label>SPH</label>
                       <input

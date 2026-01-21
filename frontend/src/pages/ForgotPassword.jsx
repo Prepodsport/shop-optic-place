@@ -67,7 +67,7 @@ export default function ForgotPassword() {
               className="auth__input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
+              placeholder="user@mail.ru"
               required
               autoFocus
             />

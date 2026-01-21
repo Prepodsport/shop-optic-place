@@ -287,7 +287,7 @@ export default function Checkout() {
                     className="checkout__input"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="your@email.com"
+                    placeholder="user@mail.ru"
                     required
                   />
                 </div>
