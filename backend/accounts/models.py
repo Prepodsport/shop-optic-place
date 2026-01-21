@@ -1,3 +1,5 @@
+import secrets
+from datetime import timedelta
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
@@ -46,3 +48,288 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}".strip() or self.email
+
+
+class PasswordResetToken(models.Model):
+    """Токен для сброса пароля"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="password_reset_tokens",
+        verbose_name="Пользователь"
+    )
+    token = models.CharField("Токен", max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField("Создан", auto_now_add=True)
+    used_at = models.DateTimeField("Использован", null=True, blank=True)
+    expires_at = models.DateTimeField("Истекает")
+
+    class Meta:
+        verbose_name = "Токен сброса пароля"
+        verbose_name_plural = "Токены сброса пароля"
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(32)
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(hours=24)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        """Проверяет, что токен валиден"""
+        return self.used_at is None and self.expires_at > timezone.now()
+
+    def mark_used(self):
+        """Помечает токен как использованный"""
+        self.used_at = timezone.now()
+        self.save(update_fields=["used_at"])
+
+    @classmethod
+    def create_for_user(cls, user):
+        """Создаёт новый токен для пользователя"""
+        # Инвалидируем старые токены
+        cls.objects.filter(user=user, used_at__isnull=True).update(
+            used_at=timezone.now()
+        )
+        return cls.objects.create(user=user)
+
+    def __str__(self):
+        return f"Reset token for {self.user.email}"
+
+
+class Prescription(models.Model):
+    """Оптический рецепт пользователя"""
+    TYPE_GLASSES = "glasses"
+    TYPE_CONTACTS = "contacts"
+    PRESCRIPTION_TYPES = [
+        (TYPE_GLASSES, "Очки"),
+        (TYPE_CONTACTS, "Контактные линзы"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="prescriptions",
+        verbose_name="Пользователь"
+    )
+    name = models.CharField(
+        "Название",
+        max_length=100,
+        blank=True,
+        help_text="Например: 'Основной рецепт', 'Для вождения'"
+    )
+    prescription_type = models.CharField(
+        "Тип рецепта",
+        max_length=20,
+        choices=PRESCRIPTION_TYPES,
+        default=TYPE_GLASSES
+    )
+
+    # Правый глаз (OD - Oculus Dexter)
+    od_sph = models.DecimalField(
+        "OD SPH (сфера)",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Сфера правого глаза, от -20.00 до +20.00"
+    )
+    od_cyl = models.DecimalField(
+        "OD CYL (цилиндр)",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Цилиндр правого глаза для коррекции астигматизма"
+    )
+    od_axis = models.PositiveSmallIntegerField(
+        "OD AXIS (ось)",
+        null=True,
+        blank=True,
+        help_text="Ось цилиндра правого глаза, от 0 до 180 градусов"
+    )
+    od_add = models.DecimalField(
+        "OD ADD (аддидация)",
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Аддидация для прогрессивных/бифокальных линз"
+    )
+    od_bc = models.DecimalField(
+        "OD BC (базовая кривизна)",
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Базовая кривизна для контактных линз"
+    )
+    od_dia = models.DecimalField(
+        "OD DIA (диаметр)",
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Диаметр контактной линзы"
+    )
+
+    # Левый глаз (OS - Oculus Sinister)
+    os_sph = models.DecimalField(
+        "OS SPH (сфера)",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Сфера левого глаза, от -20.00 до +20.00"
+    )
+    os_cyl = models.DecimalField(
+        "OS CYL (цилиндр)",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Цилиндр левого глаза для коррекции астигматизма"
+    )
+    os_axis = models.PositiveSmallIntegerField(
+        "OS AXIS (ось)",
+        null=True,
+        blank=True,
+        help_text="Ось цилиндра левого глаза, от 0 до 180 градусов"
+    )
+    os_add = models.DecimalField(
+        "OS ADD (аддидация)",
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Аддидация для прогрессивных/бифокальных линз"
+    )
+    os_bc = models.DecimalField(
+        "OS BC (базовая кривизна)",
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Базовая кривизна для контактных линз"
+    )
+    os_dia = models.DecimalField(
+        "OS DIA (диаметр)",
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Диаметр контактной линзы"
+    )
+
+    # Общие параметры
+    pd = models.DecimalField(
+        "PD (межзрачковое расстояние)",
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Расстояние между зрачками в мм"
+    )
+    pd_left = models.DecimalField(
+        "PD левый",
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Полумежзрачковое расстояние слева"
+    )
+    pd_right = models.DecimalField(
+        "PD правый",
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Полумежзрачковое расстояние справа"
+    )
+
+    # Дополнительная информация
+    doctor_name = models.CharField(
+        "Врач",
+        max_length=200,
+        blank=True,
+        help_text="ФИО врача, выписавшего рецепт"
+    )
+    clinic_name = models.CharField(
+        "Клиника",
+        max_length=200,
+        blank=True,
+        help_text="Название клиники"
+    )
+    exam_date = models.DateField(
+        "Дата осмотра",
+        null=True,
+        blank=True
+    )
+    expiry_date = models.DateField(
+        "Срок действия",
+        null=True,
+        blank=True,
+        help_text="Рецепт обычно действителен 1-2 года"
+    )
+    notes = models.TextField(
+        "Примечания",
+        blank=True
+    )
+
+    # Флаги
+    is_primary = models.BooleanField(
+        "Основной рецепт",
+        default=False,
+        help_text="Использовать по умолчанию при заказе"
+    )
+
+    created_at = models.DateTimeField("Создан", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлён", auto_now=True)
+
+    class Meta:
+        verbose_name = "Рецепт"
+        verbose_name_plural = "Рецепты"
+        ordering = ["-is_primary", "-created_at"]
+
+    def __str__(self):
+        name = self.name or self.get_prescription_type_display()
+        return f"{name} - {self.user.email}"
+
+    def save(self, *args, **kwargs):
+        # Если это основной рецепт, убираем флаг у других
+        if self.is_primary:
+            Prescription.objects.filter(
+                user=self.user,
+                is_primary=True
+            ).exclude(pk=self.pk).update(is_primary=False)
+        super().save(*args, **kwargs)
+
+    def get_od_display(self):
+        """Форматированное отображение правого глаза"""
+        parts = []
+        if self.od_sph is not None:
+            parts.append(f"SPH {self.od_sph:+.2f}")
+        if self.od_cyl is not None:
+            parts.append(f"CYL {self.od_cyl:+.2f}")
+        if self.od_axis is not None:
+            parts.append(f"AXIS {self.od_axis}°")
+        return " ".join(parts) if parts else "—"
+
+    def get_os_display(self):
+        """Форматированное отображение левого глаза"""
+        parts = []
+        if self.os_sph is not None:
+            parts.append(f"SPH {self.os_sph:+.2f}")
+        if self.os_cyl is not None:
+            parts.append(f"CYL {self.os_cyl:+.2f}")
+        if self.os_axis is not None:
+            parts.append(f"AXIS {self.os_axis}°")
+        return " ".join(parts) if parts else "—"
+
+    def is_expired(self):
+        """Проверяет, истёк ли срок действия рецепта"""
+        if not self.expiry_date:
+            return False
+        return self.expiry_date < timezone.now().date()

@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from catalog.models import Product
+from catalog.models import Product, ProductVariant
 
 
 class Coupon(models.Model):
@@ -44,14 +44,24 @@ class Order(models.Model):
     """Заказ"""
     STATUS_CART = "cart"
     STATUS_PLACED = "placed"
+    STATUS_CONFIRMED = "confirmed"
     STATUS_PAID = "paid"
+    STATUS_PROCESSING = "processing"
+    STATUS_SHIPPED = "shipped"
+    STATUS_DELIVERED = "delivered"
     STATUS_CANCELLED = "cancelled"
+    STATUS_REFUNDED = "refunded"
 
     STATUSES = [
         (STATUS_CART, "Корзина"),
         (STATUS_PLACED, "Оформлен"),
+        (STATUS_CONFIRMED, "Подтверждён"),
         (STATUS_PAID, "Оплачен"),
+        (STATUS_PROCESSING, "В обработке"),
+        (STATUS_SHIPPED, "Отправлен"),
+        (STATUS_DELIVERED, "Доставлен"),
         (STATUS_CANCELLED, "Отменён"),
+        (STATUS_REFUNDED, "Возврат"),
     ]
 
     user = models.ForeignKey(
@@ -64,6 +74,19 @@ class Order(models.Model):
     )
     email = models.EmailField("Email")
     phone = models.CharField("Телефон", max_length=32, blank=True)
+
+    # Адрес доставки
+    shipping_name = models.CharField("ФИО получателя", max_length=200, blank=True)
+    shipping_address = models.TextField("Адрес доставки", blank=True)
+    shipping_city = models.CharField("Город", max_length=100, blank=True)
+    shipping_postal_code = models.CharField("Почтовый индекс", max_length=20, blank=True)
+    shipping_method = models.CharField("Способ доставки", max_length=50, blank=True)
+    shipping_cost = models.DecimalField("Стоимость доставки", max_digits=12, decimal_places=2, default=0)
+
+    # Оплата
+    payment_method = models.CharField("Способ оплаты", max_length=50, blank=True)
+    payment_id = models.CharField("ID платежа", max_length=100, blank=True, help_text="ID транзакции платёжной системы")
+    paid_at = models.DateTimeField("Дата оплаты", null=True, blank=True)
 
     status = models.CharField(
         "Статус",
@@ -85,15 +108,38 @@ class Order(models.Model):
     discount_total = models.DecimalField("Сумма скидки", max_digits=12, decimal_places=2, default=0)
     grand_total = models.DecimalField("Итого к оплате", max_digits=12, decimal_places=2, default=0)
 
+    # Примечания
+    customer_note = models.TextField("Примечание покупателя", blank=True)
+    admin_note = models.TextField("Примечание администратора", blank=True)
+
+    # Трекинг
+    tracking_number = models.CharField("Номер отслеживания", max_length=100, blank=True)
+
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
+    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
 
     class Meta:
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["user", "status"]),
+        ]
 
     def __str__(self):
         return f"Заказ #{self.id} - {self.get_status_display()}"
+
+    def can_cancel(self):
+        """Можно ли отменить заказ"""
+        return self.status in [self.STATUS_PLACED, self.STATUS_CONFIRMED, self.STATUS_PAID]
+
+    def restore_stock(self):
+        """Восстановить остатки при отмене заказа"""
+        for item in self.items.all():
+            if item.variant:
+                item.variant.stock += item.qty
+                item.variant.save(update_fields=["stock"])
 
 
 class OrderItem(models.Model):
@@ -109,13 +155,46 @@ class OrderItem(models.Model):
         on_delete=models.PROTECT,
         verbose_name="Товар"
     )
+    variant = models.ForeignKey(
+        ProductVariant,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Вариация"
+    )
     qty = models.PositiveIntegerField("Количество", default=1)
     unit_price = models.DecimalField("Цена за единицу", max_digits=12, decimal_places=2)
     line_total = models.DecimalField("Сумма позиции", max_digits=12, decimal_places=2)
+
+    # Снапшот данных на момент заказа (чтобы не терять инфо при изменении товара)
+    product_name = models.CharField("Название товара", max_length=240, blank=True)
+    product_sku = models.CharField("Артикул", max_length=100, blank=True)
+    variant_attributes = models.JSONField(
+        "Атрибуты вариации",
+        default=dict,
+        blank=True,
+        help_text="Снапшот атрибутов вариации на момент заказа"
+    )
 
     class Meta:
         verbose_name = "Позиция заказа"
         verbose_name_plural = "Позиции заказа"
 
+    def save(self, *args, **kwargs):
+        # Сохраняем снапшот данных при создании
+        if not self.pk:
+            self.product_name = self.product.name
+            self.product_sku = self.variant.sku if self.variant else self.product.sku
+            if self.variant:
+                self.variant_attributes = {
+                    av.attribute.name: av.value
+                    for av in self.variant.attribute_values.select_related("attribute").all()
+                }
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.product.name} x{self.qty}"
+        name = self.product_name or self.product.name
+        if self.variant_attributes:
+            attrs = ", ".join(f"{k}: {v}" for k, v in self.variant_attributes.items())
+            return f"{name} ({attrs}) x{self.qty}"
+        return f"{name} x{self.qty}"

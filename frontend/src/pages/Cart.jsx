@@ -1,11 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import "./Cart.css";
 
 export default function Cart() {
+  const navigate = useNavigate();
   const { items, totalItems, totalPrice, updateQuantity, removeFromCart, clearCart } = useCart();
 
   const isEmpty = items.length === 0;
+
+  const handleCheckout = () => {
+    navigate("/checkout");
+  };
 
   return (
     <div className="cart">
@@ -123,7 +128,7 @@ export default function Cart() {
                     <span>{totalPrice.toLocaleString("ru-RU")} ₽</span>
                   </div>
 
-                  <button className="cart__checkout">Оформить заказ</button>
+                  <button className="cart__checkout" onClick={handleCheckout}>Оформить заказ</button>
 
                   {/* Кнопку "Очистить корзину" в сайдбаре убрали,
                       т.к. action теперь в header как в Favorites */}

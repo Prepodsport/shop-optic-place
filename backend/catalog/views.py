@@ -6,10 +6,11 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q, Min, Max
 from django_filters.rest_framework import FilterSet, filters
 
-from .models import Category, Brand, Product, Attribute, AttributeValue, ProductVariant, ProductAttributeValue
+from .models import Category, Brand, Product, Attribute, AttributeValue, ProductVariant, ProductAttributeValue, Review
 from .serializers import (
     CategorySerializer, BrandSerializer, ProductListSerializer, ProductDetailSerializer,
-    AttributeSerializer, AttributeFilterSerializer
+    AttributeSerializer, AttributeFilterSerializer,
+    ReviewSerializer, ReviewCreateSerializer, ProductReviewsSerializer
 )
 
 
@@ -312,3 +313,107 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                 "max": str(price_stats["max_price"] or 0),
             }
         })
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """ViewSet для отзывов"""
+    queryset = Review.objects.select_related("user", "product").all()
+    serializer_class = ReviewSerializer
+
+    def get_permissions(self):
+        if self.action in ["create"]:
+            return [permissions.AllowAny()]
+        if self.action in ["update", "partial_update", "destroy"]:
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ReviewCreateSerializer
+        return ReviewSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Для публичных запросов показываем только одобренные отзывы
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(status=Review.STATUS_APPROVED)
+
+        # Фильтрация по товару
+        product_id = self.request.query_params.get("product")
+        product_slug = self.request.query_params.get("product_slug")
+
+        if product_id:
+            queryset = queryset.filter(product_id=product_id)
+        elif product_slug:
+            queryset = queryset.filter(product__slug=product_slug)
+
+        return queryset.order_by("-created_at")
+
+    @action(detail=False, methods=["get"])
+    def product_reviews(self, request):
+        """
+        Получить отзывы для конкретного товара со статистикой.
+        Query params:
+        - product_id или product_slug: идентификатор товара
+        """
+        product_id = request.query_params.get("product_id")
+        product_slug = request.query_params.get("product_slug")
+
+        if not product_id and not product_slug:
+            return Response(
+                {"detail": "Укажите product_id или product_slug"},
+                status=400
+            )
+
+        if product_id:
+            try:
+                product = Product.objects.get(pk=product_id, is_active=True)
+            except Product.DoesNotExist:
+                return Response({"detail": "Товар не найден"}, status=404)
+        else:
+            try:
+                product = Product.objects.get(slug=product_slug, is_active=True)
+            except Product.DoesNotExist:
+                return Response({"detail": "Товар не найден"}, status=404)
+
+        reviews = Review.objects.filter(
+            product=product,
+            status=Review.STATUS_APPROVED
+        ).select_related("user").order_by("-created_at")
+
+        # Статистика
+        from django.db.models import Avg, Count
+
+        stats = reviews.aggregate(
+            total=Count("id"),
+            avg_rating=Avg("rating")
+        )
+
+        # Распределение по оценкам
+        distribution = {}
+        for i in range(1, 6):
+            distribution[str(i)] = reviews.filter(rating=i).count()
+
+        return Response({
+            "reviews": ReviewSerializer(reviews, many=True).data,
+            "total_count": stats["total"] or 0,
+            "average_rating": round(stats["avg_rating"], 1) if stats["avg_rating"] else None,
+            "rating_distribution": distribution,
+        })
+
+    @action(detail=True, methods=["post"])
+    def helpful(self, request, pk=None):
+        """Отметить отзыв как полезный"""
+        review = self.get_object()
+        review.helpful_count += 1
+        review.save(update_fields=["helpful_count"])
+        return Response({"helpful_count": review.helpful_count})
+
+    @action(detail=True, methods=["post"])
+    def not_helpful(self, request, pk=None):
+        """Отметить отзыв как бесполезный"""
+        review = self.get_object()
+        review.not_helpful_count += 1
+        review.save(update_fields=["not_helpful_count"])
+        return Response({"not_helpful_count": review.not_helpful_count})

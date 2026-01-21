@@ -567,32 +567,30 @@ class Command(BaseCommand):
                 # Определяем имя файла
                 parsed_url = urlparse(url)
                 filename = os.path.basename(parsed_url.path)
-                if not filename:
-                    filename = f'{product.slug}-{i+1}.jpg'
+                if not filename or '.' not in filename:
+                    filename = f'{product.slug}-{i + 1}.jpg'
 
-                # Сохраняем изображение
-                content = ContentFile(response.content)
+                # СОЗДАЕМ ContentFile с явным указанием имени
+                content = ContentFile(response.content, name=filename)
 
                 if i == 0:
                     # Первое изображение - главное
                     product.main_image.save(filename, content, save=True)
                 else:
                     # Остальные - в галерею
-                    ProductImage.objects.create(
+                    product_image = ProductImage.objects.create(
                         product=product,
-                        image=content,
                         sort=i
                     )
-                    # Сохраняем файл
-                    img = ProductImage.objects.filter(product=product).last()
-                    if img:
-                        img.image.save(filename, content, save=True)
+                    # Сохраняем файл с явным указанием имени
+                    product_image.image.save(filename, content, save=True)
 
                 count += 1
                 self.stdout.write(f'  Изображение: {filename}')
 
             except Exception as e:
                 self.stderr.write(f'  Ошибка загрузки {url}: {e}')
+                # Пропускаем ошибки загрузки изображений, продолжаем импорт
 
         return count
 

@@ -393,3 +393,128 @@ class ProductVariant(models.Model):
         if values_display:
             return f"{self.product.name} ({values_display})"
         return f"{self.product.name} - вариация #{self.id}"
+
+
+class Review(models.Model):
+    """Отзыв о товаре"""
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUSES = [
+        (STATUS_PENDING, "На модерации"),
+        (STATUS_APPROVED, "Одобрен"),
+        (STATUS_REJECTED, "Отклонён"),
+    ]
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+        verbose_name="Товар"
+    )
+    user = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviews",
+        verbose_name="Пользователь"
+    )
+    author_name = models.CharField(
+        "Имя автора",
+        max_length=100,
+        help_text="Для неавторизованных пользователей или если пользователь хочет оставить другое имя"
+    )
+    rating = models.PositiveSmallIntegerField(
+        "Оценка",
+        choices=[(i, str(i)) for i in range(1, 6)],
+        help_text="Оценка от 1 до 5"
+    )
+    title = models.CharField(
+        "Заголовок",
+        max_length=200,
+        blank=True
+    )
+    text = models.TextField(
+        "Текст отзыва"
+    )
+    advantages = models.TextField(
+        "Достоинства",
+        blank=True
+    )
+    disadvantages = models.TextField(
+        "Недостатки",
+        blank=True
+    )
+
+    # Подтверждённая покупка
+    is_verified_purchase = models.BooleanField(
+        "Подтверждённая покупка",
+        default=False,
+        help_text="Пользователь купил этот товар"
+    )
+
+    status = models.CharField(
+        "Статус",
+        max_length=20,
+        choices=STATUSES,
+        default=STATUS_PENDING
+    )
+
+    # Полезность
+    helpful_count = models.PositiveIntegerField(
+        "Полезно",
+        default=0
+    )
+    not_helpful_count = models.PositiveIntegerField(
+        "Не полезно",
+        default=0
+    )
+
+    # Ответ администратора
+    admin_response = models.TextField(
+        "Ответ магазина",
+        blank=True
+    )
+    admin_response_at = models.DateTimeField(
+        "Дата ответа",
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
+    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
+
+    class Meta:
+        verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["product", "status"]),
+            models.Index(fields=["user"]),
+            models.Index(fields=["status", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"Отзыв на {self.product.name} от {self.author_name} ({self.rating}/5)"
+
+    def save(self, *args, **kwargs):
+        # Если пользователь указан и имя автора пустое - берём из профиля
+        if self.user and not self.author_name:
+            self.author_name = self.user.get_full_name() or self.user.email.split("@")[0]
+        super().save(*args, **kwargs)
+        # Обновляем рейтинг товара
+        self.product.update_rating()
+
+
+# Добавляем метод update_rating в Product
+def product_update_rating(self):
+    """Обновляет средний рейтинг товара на основе одобренных отзывов"""
+    from django.db.models import Avg
+    reviews = self.reviews.filter(status=Review.STATUS_APPROVED)
+    avg = reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"]
+    # Можно сохранить в отдельное поле, но пока просто возвращаем
+    return avg
+
+
+Product.update_rating = product_update_rating

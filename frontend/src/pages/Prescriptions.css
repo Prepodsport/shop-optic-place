@@ -1,0 +1,471 @@
+.prescriptions {
+  padding: 40px 16px 60px;
+}
+
+.prescriptions__container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.prescriptions__back {
+  display: inline-block;
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.prescriptions__back:hover {
+  text-decoration: underline;
+}
+
+.prescriptions__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.prescriptions__title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.prescriptions__subtitle {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 0;
+}
+
+.prescriptions__add-btn {
+  padding: 12px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.prescriptions__add-btn:hover {
+  background: #1d4ed8;
+}
+
+.prescriptions__loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.prescriptions__error {
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 12px;
+  color: #dc2626;
+  margin-bottom: 24px;
+}
+
+/* Пустое состояние */
+.prescriptions__empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.prescriptions__empty svg {
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.prescriptions__empty h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.prescriptions__empty p {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 0 0 24px;
+}
+
+/* Список рецептов */
+.prescriptions__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.prescriptions__card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.prescriptions__card:hover {
+  border-color: var(--primary);
+}
+
+.prescriptions__card--primary {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.prescriptions__card--expired {
+  opacity: 0.7;
+}
+
+.prescriptions__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 20px 0;
+}
+
+.prescriptions__card-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prescriptions__badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.prescriptions__badge--warning {
+  background: #f59e0b;
+}
+
+.prescriptions__card-type {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.prescriptions__card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.prescriptions__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prescriptions__action-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.prescriptions__action-btn--danger:hover {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.prescriptions__card-body {
+  padding: 20px;
+}
+
+.prescriptions__eye-data {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.prescriptions__eye {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.prescriptions__eye-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.prescriptions__eye-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: monospace;
+}
+
+.prescriptions__pd {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg);
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.prescriptions__card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Модальное окно */
+.prescriptions__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.prescriptions__modal {
+  background: var(--card);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.prescriptions__modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prescriptions__modal-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.prescriptions__modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  font-size: 28px;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.prescriptions__modal-close:hover {
+  color: var(--text);
+}
+
+/* Форма */
+.prescriptions__form {
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.prescriptions__form-section {
+  margin-bottom: 24px;
+}
+
+.prescriptions__form-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin: 0 0 16px;
+}
+
+.prescriptions__form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.prescriptions__form-row--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.prescriptions__form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prescriptions__form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.prescriptions__form-field input,
+.prescriptions__form-field select,
+.prescriptions__form-field textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  transition: border-color 0.2s;
+}
+
+.prescriptions__form-field input:focus,
+.prescriptions__form-field select:focus,
+.prescriptions__form-field textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.prescriptions__form-field textarea {
+  resize: vertical;
+}
+
+.prescriptions__form-checkbox {
+  margin-top: 16px;
+}
+
+.prescriptions__form-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.prescriptions__form-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.prescriptions__form-checkbox span {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.prescriptions__form-error {
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.prescriptions__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.prescriptions__btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prescriptions__btn--primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.prescriptions__btn--primary:hover {
+  background: #1d4ed8;
+}
+
+.prescriptions__btn--primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.prescriptions__btn--secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.prescriptions__btn--secondary:hover {
+  background: var(--bg);
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .prescriptions__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .prescriptions__title {
+    font-size: 26px;
+  }
+
+  .prescriptions__eye-data {
+    grid-template-columns: 1fr;
+  }
+
+  .prescriptions__form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .prescriptions__form-row--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .prescriptions__modal {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .prescriptions__form-actions {
+    flex-direction: column;
+  }
+
+  .prescriptions__btn {
+    width: 100%;
+  }
+}

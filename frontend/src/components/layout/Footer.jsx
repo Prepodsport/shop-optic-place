@@ -48,17 +48,17 @@ export default function Footer() {
             <h4 className="footer__title">Контакты</h4>
             <ul className="footer__list footer__contacts">
               <li>
-                <a href="tel:+78001234567" className="footer__link">
-                  8 (800) 123-45-67
+                <a href="tel:+74954970497" className="footer__link">
+                  +7 495 497-0-497
                 </a>
               </li>
               <li>
-                <a href="mailto:info@opticplace.ru" className="footer__link">
-                  info@opticplace.ru
+                <a href="mailto:info@shop.opticplace.ru" className="footer__link">
+                  info@shop.opticplace.ru
                 </a>
               </li>
               <li className="footer__address">
-                г. Москва, ул. Примерная, д. 1
+                г. Москва, ул. Старая Басманная, 14/2 стр. 4
               </li>
             </ul>
           </div>

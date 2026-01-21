@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Category, Brand, Product, ProductImage,
-    Attribute, AttributeValue, ProductAttributeValue, ProductVariant
+    Attribute, AttributeValue, ProductAttributeValue, ProductVariant, Review
 )
 from drf_spectacular.utils import extend_schema_field
 
@@ -323,3 +323,78 @@ class CatalogFiltersSerializer(serializers.Serializer):
     categories = CategorySerializer(many=True)
     brands = BrandSerializer(many=True)
     price_range = serializers.DictField()
+
+
+# ============================================
+# ОТЗЫВЫ
+# ============================================
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор отзыва для чтения"""
+    user_email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        fields = [
+            "id", "author_name", "user_email", "rating",
+            "title", "text", "advantages", "disadvantages",
+            "is_verified_purchase", "helpful_count", "not_helpful_count",
+            "admin_response", "admin_response_at",
+            "created_at",
+        ]
+
+    def get_user_email(self, obj):
+        if obj.user:
+            # Скрываем часть email для приватности
+            email = obj.user.email
+            parts = email.split("@")
+            if len(parts) == 2:
+                name = parts[0]
+                if len(name) > 3:
+                    return f"{name[:3]}***@{parts[1]}"
+                return f"{name[0]}***@{parts[1]}"
+        return None
+
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания отзыва"""
+
+    class Meta:
+        model = Review
+        fields = [
+            "product", "author_name", "rating",
+            "title", "text", "advantages", "disadvantages",
+        ]
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Оценка должна быть от 1 до 5")
+        return value
+
+    def validate_text(self, value):
+        if len(value.strip()) < 10:
+            raise serializers.ValidationError("Отзыв должен содержать минимум 10 символов")
+        return value
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            validated_data["user"] = request.user
+            # Проверяем, покупал ли пользователь этот товар
+            from orders.models import Order, OrderItem
+            product = validated_data["product"]
+            has_purchased = OrderItem.objects.filter(
+                order__user=request.user,
+                order__status__in=[Order.STATUS_PAID, Order.STATUS_DELIVERED],
+                product=product
+            ).exists()
+            validated_data["is_verified_purchase"] = has_purchased
+        return super().create(validated_data)
+
+
+class ProductReviewsSerializer(serializers.Serializer):
+    """Сериализатор для списка отзывов товара со статистикой"""
+    reviews = ReviewSerializer(many=True)
+    total_count = serializers.IntegerField()
+    average_rating = serializers.FloatField(allow_null=True)
+    rating_distribution = serializers.DictField()

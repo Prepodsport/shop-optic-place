@@ -9,7 +9,7 @@ from django.contrib.admin.helpers import ActionForm
 
 from .models import (
     Category, Brand, Product, ProductImage,
-    Attribute, AttributeValue, ProductAttributeValue, ProductVariant
+    Attribute, AttributeValue, ProductAttributeValue, ProductVariant, Review
 )
 
 def money(val: Decimal) -> Decimal:
@@ -510,3 +510,45 @@ class ProductVariantAdmin(admin.ModelAdmin):
             return obj.get_attribute_values_display() or "Не выбрано"
         return "—"
     attribute_values_display.short_description = "Текущая комбинация"
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ("id", "product", "author_name", "rating", "status", "is_verified_purchase", "created_at")
+    list_filter = ("status", "rating", "is_verified_purchase", "created_at")
+    search_fields = ("author_name", "product__name", "text", "title")
+    raw_id_fields = ("product", "user")
+    readonly_fields = ("created_at", "updated_at", "helpful_count", "not_helpful_count")
+    list_editable = ("status",)
+    ordering = ("-created_at",)
+    actions = ["approve_reviews", "reject_reviews"]
+
+    fieldsets = (
+        ("Основное", {
+            "fields": ("product", "user", "author_name", "rating", "status")
+        }),
+        ("Содержимое", {
+            "fields": ("title", "text", "advantages", "disadvantages")
+        }),
+        ("Дополнительно", {
+            "fields": ("is_verified_purchase", "helpful_count", "not_helpful_count")
+        }),
+        ("Ответ магазина", {
+            "fields": ("admin_response", "admin_response_at"),
+            "classes": ("collapse",)
+        }),
+        ("Даты", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+
+    @admin.action(description="Одобрить выбранные отзывы")
+    def approve_reviews(self, request, queryset):
+        updated = queryset.update(status=Review.STATUS_APPROVED)
+        messages.success(request, f"Одобрено отзывов: {updated}")
+
+    @admin.action(description="Отклонить выбранные отзывы")
+    def reject_reviews(self, request, queryset):
+        updated = queryset.update(status=Review.STATUS_REJECTED)
+        messages.success(request, f"Отклонено отзывов: {updated}")

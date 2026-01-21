@@ -59,6 +59,12 @@ export default function Login() {
                 required
               />
             </label>
+
+            <div className="auth__forgot">
+              <Link to="/forgot-password" className="auth__link">
+                Забыли пароль?
+              </Link>
+            </div>
           </div>
 
           {err ? <div className="auth__status auth__status--error">{err}</div> : null}

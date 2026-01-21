@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from django.conf import settings
 from .models import Appointment
 from .serializers import AppointmentCreateSerializer, AppointmentSerializer
+from .emails import send_appointment_confirmation
 from integrations.bitrix24 import Bitrix24Client
 
 
@@ -38,5 +39,9 @@ class AppointmentCreateView(generics.GenericAPIView):
             appt.status = Appointment.STATUS_FAILED
             appt.bitrix_raw = {"error": str(e)}
             appt.save(update_fields=["status", "bitrix_raw"])
+
+        # Отправляем email подтверждения
+        if appt.email:
+            send_appointment_confirmation(appt)
 
         return Response(AppointmentSerializer(appt).data, status=status.HTTP_201_CREATED)
