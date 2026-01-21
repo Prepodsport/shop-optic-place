@@ -34,3 +34,8 @@ pnpm-debug.log*
 tmpclaude-*
 backend/tmpclaude-*
 frontend/tmpclaude-*
+# local tooling
+.claude/settings.local.json
+
+# logs
+backend/logs/
