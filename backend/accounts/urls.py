@@ -3,7 +3,8 @@ from .views import (
     RegisterView, MeView, PasswordChangeView, LogoutView,
     ThrottledTokenObtainPairView, ThrottledTokenRefreshView,
     PasswordResetRequestView, PasswordResetConfirmView, PasswordResetValidateTokenView,
-    PrescriptionListCreateView, PrescriptionDetailView, PrescriptionSetPrimaryView
+    PrescriptionListCreateView, PrescriptionDetailView, PrescriptionSetPrimaryView,
+    LensReminderListCreateView, LensReminderDetailView, LensReminderRenewView, LensReminderActiveView
 )
 
 urlpatterns = [
@@ -26,4 +27,10 @@ urlpatterns = [
     path("prescriptions/", PrescriptionListCreateView.as_view(), name="prescription_list"),
     path("prescriptions/<int:pk>/", PrescriptionDetailView.as_view(), name="prescription_detail"),
     path("prescriptions/<int:pk>/set-primary/", PrescriptionSetPrimaryView.as_view(), name="prescription_set_primary"),
+
+    # Напоминания о замене линз
+    path("lens-reminders/", LensReminderListCreateView.as_view(), name="lens_reminder_list"),
+    path("lens-reminders/active/", LensReminderActiveView.as_view(), name="lens_reminder_active"),
+    path("lens-reminders/<int:pk>/", LensReminderDetailView.as_view(), name="lens_reminder_detail"),
+    path("lens-reminders/<int:pk>/renew/", LensReminderRenewView.as_view(), name="lens_reminder_renew"),
 ]

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Prescription
+from .models import User, Prescription, LensReminder
 
 
 @admin.register(User)
@@ -49,6 +49,32 @@ class PrescriptionAdmin(admin.ModelAdmin):
         }),
         ("Системное", {
             "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(LensReminder)
+class LensReminderAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "name", "lens_type", "start_date", "replacement_date", "days_until_replacement", "status", "is_active")
+    list_filter = ("lens_type", "is_active")
+    search_fields = ("user__email", "name")
+    raw_id_fields = ("user",)
+    readonly_fields = ("created_at", "updated_at", "replacement_date", "days_until_replacement", "status")
+
+    fieldsets = (
+        ("Основное", {
+            "fields": ("user", "name", "is_active")
+        }),
+        ("Настройки замены", {
+            "fields": ("lens_type", "custom_days", "start_date", "notify_days_before")
+        }),
+        ("Статус", {
+            "fields": ("replacement_date", "days_until_replacement", "status"),
+            "classes": ("collapse",)
+        }),
+        ("Дополнительно", {
+            "fields": ("notes", "created_at", "updated_at"),
             "classes": ("collapse",)
         }),
     )

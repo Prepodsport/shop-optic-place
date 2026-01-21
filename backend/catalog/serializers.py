@@ -358,6 +358,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ReviewCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания отзыва"""
+    author_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Review
@@ -376,19 +377,39 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Отзыв должен содержать минимум 10 символов")
         return value
 
+    def validate(self, attrs):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+
+        # Для анонима имя обязательно
+        if not (user and user.is_authenticated):
+            name = (attrs.get("author_name") or "").strip()
+            if not name:
+                raise serializers.ValidationError({"author_name": "Укажите имя."})
+
+        return attrs
+
     def create(self, validated_data):
         request = self.context.get("request")
-        if request and request.user.is_authenticated:
-            validated_data["user"] = request.user
-            # Проверяем, покупал ли пользователь этот товар
+        user = getattr(request, "user", None)
+
+        # Если пользователь залогинен — привязываем user и подставляем имя, если не передали
+        if user and user.is_authenticated:
+            validated_data["user"] = user
+
+            if not (validated_data.get("author_name") or "").strip():
+                validated_data["author_name"] = user.get_full_name() or user.email.split("@")[0]
+
+            # Проверяем покупку
             from orders.models import Order, OrderItem
             product = validated_data["product"]
             has_purchased = OrderItem.objects.filter(
-                order__user=request.user,
+                order__user=user,
                 order__status__in=[Order.STATUS_PAID, Order.STATUS_DELIVERED],
                 product=product
             ).exists()
             validated_data["is_verified_purchase"] = has_purchased
+
         return super().create(validated_data)
 
 

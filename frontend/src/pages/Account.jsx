@@ -323,6 +323,13 @@ export default function Account() {
                   </svg>
                   <span>Мои рецепты</span>
                 </Link>
+                <Link to="/lens-reminders" className="account__quick-action">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>Напоминания</span>
+                </Link>
                 <Link to="/booking" className="account__quick-action">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>

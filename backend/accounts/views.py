@@ -11,9 +11,9 @@ from django.contrib.auth import get_user_model
 from .serializers import (
     RegisterSerializer, MeSerializer, PasswordChangeSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
-    PrescriptionSerializer
+    PrescriptionSerializer, LensReminderSerializer
 )
-from .models import PasswordResetToken, Prescription
+from .models import PasswordResetToken, Prescription, LensReminder
 from .throttling import AuthRateThrottle, RegisterRateThrottle
 
 logger = logging.getLogger(__name__)
@@ -240,3 +240,79 @@ class PrescriptionSetPrimaryView(APIView):
         prescription.save()
 
         return Response(PrescriptionSerializer(prescription).data)
+
+
+# === Напоминания о замене линз ===
+
+class LensReminderListCreateView(generics.ListCreateAPIView):
+    """Список и создание напоминаний о замене линз"""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = LensReminderSerializer
+
+    def get_queryset(self):
+        return LensReminder.objects.filter(user=self.request.user)
+
+
+class LensReminderDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Просмотр, редактирование и удаление напоминания"""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = LensReminderSerializer
+
+    def get_queryset(self):
+        return LensReminder.objects.filter(user=self.request.user)
+
+
+class LensReminderRenewView(APIView):
+    """Обновление напоминания (начать новый период)"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            reminder = LensReminder.objects.get(pk=pk, user=request.user)
+        except LensReminder.DoesNotExist:
+            return Response(
+                {"detail": "Напоминание не найдено"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Получаем новую дату начала (если передана) или используем сегодня
+        from django.utils import timezone
+        new_start_date = request.data.get("start_date")
+        if new_start_date:
+            from datetime import datetime
+            try:
+                new_start_date = datetime.strptime(new_start_date, "%Y-%m-%d").date()
+            except ValueError:
+                return Response(
+                    {"detail": "Неверный формат даты. Используйте YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            new_start_date = timezone.now().date()
+
+        reminder.renew(new_start_date)
+
+        return Response(LensReminderSerializer(reminder).data)
+
+
+class LensReminderActiveView(APIView):
+    """Получение активных напоминаний, требующих внимания"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        reminders = LensReminder.objects.filter(
+            user=request.user,
+            is_active=True
+        )
+
+        # Фильтруем те, что требуют внимания
+        active_reminders = []
+        for reminder in reminders:
+            if reminder.needs_reminder or reminder.is_overdue:
+                active_reminders.append(reminder)
+
+        serializer = LensReminderSerializer(active_reminders, many=True)
+        return Response({
+            "count": len(active_reminders),
+            "reminders": serializer.data
+        })

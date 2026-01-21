@@ -18,6 +18,8 @@ import OrderDetail from "./pages/OrderDetail.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Prescriptions from "./pages/Prescriptions.jsx";
+import LensCalculator from "./pages/LensCalculator.jsx";
+import LensReminders from "./pages/LensReminders.jsx";
 
 export default function App() {
   return (
@@ -29,6 +31,8 @@ export default function App() {
         <Route path="/booking" element={<Booking />} />
         <Route path="/account" element={<Account />} />
         <Route path="/prescriptions" element={<Prescriptions />} />
+        <Route path="/lens-calculator" element={<LensCalculator />} />
+        <Route path="/lens-reminders" element={<LensReminders />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

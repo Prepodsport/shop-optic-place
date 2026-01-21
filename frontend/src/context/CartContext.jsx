@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 
 const CartContext = createContext(null);
 
@@ -8,22 +8,33 @@ function makeKey(productId, variantId) {
   return variantId ? `${productId}:${variantId}` : `${productId}`;
 }
 
-export function CartProvider({ children }) {
-  const [items, setItems] = useState([]);
-
-  useEffect(() => {
+// Загружаем из localStorage синхронно при инициализации
+function loadCartFromStorage() {
+  try {
     const saved = localStorage.getItem(CART_STORAGE_KEY);
     if (saved) {
-      try {
-        setItems(JSON.parse(saved));
-      } catch (e) {
-        console.error("Ошибка загрузки корзины:", e);
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed;
       }
     }
-  }, []);
+  } catch (e) {
+    console.error("Ошибка загрузки корзины:", e);
+  }
+  return [];
+}
 
+export function CartProvider({ children }) {
+  const [items, setItems] = useState(loadCartFromStorage);
+  const isInitialized = useRef(false);
+
+  // Сохраняем в localStorage при изменении (но не при первом рендере)
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    if (isInitialized.current) {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } else {
+      isInitialized.current = true;
+    }
   }, [items]);
 
   useEffect(() => {

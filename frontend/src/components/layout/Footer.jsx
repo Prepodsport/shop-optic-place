@@ -43,6 +43,25 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Сервисы */}
+          <div className="footer__column">
+            <h4 className="footer__title">Сервисы</h4>
+            <ul className="footer__list">
+              <li>
+                <Link to="/lens-calculator" className="footer__link">Калькулятор линз</Link>
+              </li>
+              <li>
+                <Link to="/booking" className="footer__link">Проверка зрения</Link>
+              </li>
+              <li>
+                <Link to="/prescriptions" className="footer__link">Мои рецепты</Link>
+              </li>
+              <li>
+                <Link to="/lens-reminders" className="footer__link">Напоминания о замене</Link>
+              </li>
+            </ul>
+          </div>
+
           {/* Контакты */}
           <div className="footer__column">
             <h4 className="footer__title">Контакты</h4>

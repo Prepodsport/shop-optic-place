@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import Prescription
+from .models import Prescription, LensReminder
 
 User = get_user_model()
 
@@ -145,6 +145,48 @@ class PrescriptionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Необходимо указать SPH хотя бы для одного глаза"
             )
+        return attrs
+
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)
+
+
+class LensReminderSerializer(serializers.ModelSerializer):
+    """Сериализатор напоминания о замене линз"""
+    lens_type_display = serializers.CharField(
+        source="get_lens_type_display",
+        read_only=True
+    )
+    replacement_date = serializers.DateField(read_only=True)
+    days_until_replacement = serializers.IntegerField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    is_overdue = serializers.BooleanField(read_only=True)
+    needs_reminder = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = LensReminder
+        fields = [
+            "id", "name", "lens_type", "lens_type_display",
+            "custom_days", "start_date", "notify_days_before",
+            "is_active", "notes",
+            # Вычисляемые поля
+            "replacement_date", "days_until_replacement",
+            "status", "is_overdue", "needs_reminder",
+            # Даты
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate(self, attrs):
+        lens_type = attrs.get("lens_type", getattr(self.instance, "lens_type", None))
+        custom_days = attrs.get("custom_days")
+
+        if lens_type == LensReminder.TYPE_CUSTOM and not custom_days:
+            raise serializers.ValidationError({
+                "custom_days": "Укажите количество дней для своего срока"
+            })
+
         return attrs
 
     def create(self, validated_data):

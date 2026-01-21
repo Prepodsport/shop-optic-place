@@ -333,3 +333,131 @@ class Prescription(models.Model):
         if not self.expiry_date:
             return False
         return self.expiry_date < timezone.now().date()
+
+
+class LensReminder(models.Model):
+    """Напоминание о замене линз"""
+    TYPE_DAILY = "daily"
+    TYPE_WEEKLY = "weekly"
+    TYPE_BIWEEKLY = "biweekly"
+    TYPE_MONTHLY = "monthly"
+    TYPE_QUARTERLY = "quarterly"
+    TYPE_CUSTOM = "custom"
+
+    LENS_TYPES = [
+        (TYPE_DAILY, "Однодневные"),
+        (TYPE_WEEKLY, "Недельные"),
+        (TYPE_BIWEEKLY, "Двухнедельные"),
+        (TYPE_MONTHLY, "Месячные"),
+        (TYPE_QUARTERLY, "Квартальные"),
+        (TYPE_CUSTOM, "Свой срок"),
+    ]
+
+    # Количество дней для каждого типа
+    TYPE_DAYS = {
+        TYPE_DAILY: 1,
+        TYPE_WEEKLY: 7,
+        TYPE_BIWEEKLY: 14,
+        TYPE_MONTHLY: 30,
+        TYPE_QUARTERLY: 90,
+    }
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="lens_reminders",
+        verbose_name="Пользователь"
+    )
+    name = models.CharField(
+        "Название",
+        max_length=100,
+        help_text="Например: 'Acuvue Oasys', 'Основные линзы'"
+    )
+    lens_type = models.CharField(
+        "Тип линз",
+        max_length=20,
+        choices=LENS_TYPES,
+        default=TYPE_MONTHLY
+    )
+    custom_days = models.PositiveIntegerField(
+        "Свой срок (дней)",
+        null=True,
+        blank=True,
+        help_text="Укажите количество дней, если выбран свой срок"
+    )
+    start_date = models.DateField(
+        "Дата начала ношения",
+        help_text="Когда вы начали носить эту пару линз"
+    )
+    notify_days_before = models.PositiveSmallIntegerField(
+        "Напоминать за (дней)",
+        default=1,
+        help_text="За сколько дней до замены напомнить"
+    )
+    is_active = models.BooleanField(
+        "Активно",
+        default=True
+    )
+    notes = models.TextField(
+        "Примечания",
+        blank=True
+    )
+
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+
+    class Meta:
+        verbose_name = "Напоминание о замене линз"
+        verbose_name_plural = "Напоминания о замене линз"
+        ordering = ["start_date"]
+
+    def __str__(self):
+        return f"{self.name} - {self.user.email}"
+
+    @property
+    def replacement_days(self):
+        """Количество дней до замены"""
+        if self.lens_type == self.TYPE_CUSTOM:
+            return self.custom_days or 30
+        return self.TYPE_DAYS.get(self.lens_type, 30)
+
+    @property
+    def replacement_date(self):
+        """Дата замены линз"""
+        return self.start_date + timedelta(days=self.replacement_days)
+
+    @property
+    def days_until_replacement(self):
+        """Дней до замены"""
+        today = timezone.now().date()
+        delta = self.replacement_date - today
+        return delta.days
+
+    @property
+    def is_overdue(self):
+        """Просрочено ли напоминание"""
+        return self.days_until_replacement < 0
+
+    @property
+    def needs_reminder(self):
+        """Пора ли отправить напоминание"""
+        days = self.days_until_replacement
+        return days <= self.notify_days_before and days >= 0
+
+    @property
+    def status(self):
+        """Статус напоминания"""
+        days = self.days_until_replacement
+        if days < 0:
+            return "overdue"
+        elif days == 0:
+            return "today"
+        elif days <= self.notify_days_before:
+            return "soon"
+        else:
+            return "ok"
+
+    def renew(self, new_start_date=None):
+        """Обновить напоминание (начать новый период)"""
+        self.start_date = new_start_date or timezone.now().date()
+        self.save(update_fields=["start_date", "updated_at"])

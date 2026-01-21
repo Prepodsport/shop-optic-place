@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../api.js";
 import { useCart } from "../context/CartContext.jsx";
 import { normalizeRichText } from "../utils/normalizeRichText.js";
+import ProductReviews from "../components/product/ProductReviews.jsx";
 import "./Product.css";
 
 export default function Product() {
@@ -458,6 +459,9 @@ export default function Product() {
           </div>
         </div>
       ) : null}
+
+      {/* Reviews */}
+      <ProductReviews productId={product.id} productSlug={product.slug} />
     </div>
   );
 }
