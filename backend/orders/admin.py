@@ -1,17 +1,18 @@
+from unfold.admin import ModelAdmin, TabularInline
 from django.contrib import admin
 from django.contrib import messages
 from .models import Order, OrderItem, Coupon
 from .emails import send_order_shipped, send_order_paid
 
 
-class OrderItemInline(admin.TabularInline):
+class OrderItemInline(TabularInline):
     model = OrderItem
     extra = 0
     readonly_fields = ("product", "variant", "product_name", "product_sku", "variant_attributes", "qty", "unit_price", "line_total")
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ModelAdmin):
     list_display = ("id", "user", "email", "phone", "status", "grand_total", "payment_method", "created_at")
     list_filter = ("status", "payment_method", "shipping_method", "created_at")
     search_fields = ("email", "phone", "user__email", "shipping_name")
@@ -75,14 +76,14 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
+class OrderItemAdmin(ModelAdmin):
     list_display = ("id", "order", "product", "qty", "unit_price", "line_total")
     list_filter = ("order__status",)
     search_fields = ("product__name", "order__email")
 
 
 @admin.register(Coupon)
-class CouponAdmin(admin.ModelAdmin):
+class CouponAdmin(ModelAdmin):
     list_display = ("code", "discount_type", "amount", "is_active", "starts_at", "ends_at", "min_total")
     list_filter = ("is_active", "discount_type")
     search_fields = ("code",)

@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
-from django.db.models import Q, Min, Max
+from django.db.models import Q, Min, Max, F
 from django_filters.rest_framework import FilterSet, filters
 
 from .models import Category, Brand, Product, Attribute, AttributeValue, ProductVariant, ProductAttributeValue, Review
@@ -128,7 +128,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """Получение товара + инкремент счётчика просмотров."""
         instance = self.get_object()
-        Product.objects.filter(pk=instance.pk).update(views_count=instance.views_count + 1)
+        Product.objects.filter(pk=instance.pk).update(views_count=F("views_count") + 1)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 

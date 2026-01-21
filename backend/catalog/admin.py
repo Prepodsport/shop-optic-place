@@ -1,5 +1,8 @@
+from unfold.admin import ModelAdmin, TabularInline
+from unfold.decorators import display
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.urls import path
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
@@ -22,25 +25,64 @@ def money(val: Decimal) -> Decimal:
 class ProductAdminActionForm(ActionForm):
     """
     Доп. поля над выпадающим списком Actions в списке товаров.
-    Работают без кастомных шаблонов.
+
+    Важно: Django может рендерить actions и сверху и снизу списка — из-за этого поля
+    дублируются в POST. Нормализацию значений делаем уже в action'е (см. action_apply_discount).
     """
     discount_percent = forms.DecimalField(
         label="Скидка, %",
         required=False,
         min_value=Decimal("0"),
-        max_value=Decimal("99.99"),
-        decimal_places=2
+        max_value=Decimal("100"),
+        decimal_places=2,
+        help_text="Например: 15 (это 15%)",
+        widget=forms.NumberInput(attrs={
+            'placeholder': 'Скидка %',
+            'class': 'text-gray-900 dark:text-white',
+            'style': 'min-width: 120px;'
+        })
     )
     discount_price = forms.DecimalField(
         label="Цена со скидкой",
         required=False,
-        min_value=Decimal("0.01"),
-        decimal_places=2
+        min_value=Decimal("0"),
+        max_digits=12,
+        decimal_places=2,
+        help_text="Укажите итоговую цену (например: 1990.00)",
+        widget=forms.NumberInput(attrs={
+            'placeholder': 'Цена со скидкой',
+            'class': 'text-gray-900 dark:text-white',
+            'style': 'min-width: 150px;'
+        })
     )
     set_sale_flag = forms.BooleanField(
-        label='Пометить как "Распродажа"',
-        required=False
+        label='Пометить "Распродажа"',
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'cursor-pointer',
+            'title': 'Пометить товары флагом is_sale=True'
+        })
     )
+
+    def clean(self):
+        cleaned = super().clean()
+        pct = cleaned.get("discount_percent")
+        dprice = cleaned.get("discount_price")
+
+        # Нельзя задавать оба поля одновременно
+        if pct is not None and dprice is not None:
+            raise forms.ValidationError("Укажите либо 'Скидка, %', либо 'Цена со скидкой', но не оба поля сразу.")
+
+        # Если процент задан — ограничим диапазон (0..100), где 0 не имеет смысла
+        if pct is not None and pct <= 0:
+            raise forms.ValidationError("Скидка, % должна быть больше 0.")
+
+        # Если цена задана — тоже должна быть > 0
+        if dprice is not None and dprice <= 0:
+            raise forms.ValidationError("Цена со скидкой должна быть больше 0.")
+
+        return cleaned
 
 
 class ProductAdminForm(forms.ModelForm):
@@ -49,24 +91,26 @@ class ProductAdminForm(forms.ModelForm):
     - скидка % или цена со скидкой
     - сброс скидки
     """
+    # ВАЖНО: поля должны быть определены ДО Meta класса!
     discount_percent_input = forms.DecimalField(
         label="Скидка, %",
         required=False,
         min_value=Decimal("0"),
         max_value=Decimal("99.99"),
         decimal_places=2,
-        help_text="Укажите процент скидки. Если old_price пустая — базой станет текущая price."
+        help_text="Укажите процент скидки. Если old_price пустая — базой станет текущая price.",
     )
     discount_price_input = forms.DecimalField(
         label="Цена со скидкой",
         required=False,
         min_value=Decimal("0.01"),
         decimal_places=2,
-        help_text="Укажите итоговую цену со скидкой. Если old_price пустая — old_price станет текущей price."
+        help_text="Укажите итоговую цену со скидкой. Если old_price пустая — old_price станет текущей price.",
     )
     clear_discount = forms.BooleanField(
         label="Сбросить скидку",
-        required=False
+        required=False,
+        help_text="Отметьте, чтобы вернуть old_price в price и удалить скидку"
     )
 
     class Meta:
@@ -120,7 +164,7 @@ class ProductAdminForm(forms.ModelForm):
         return obj
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     list_display = ("name", "slug", "parent", "sort", "image_preview")
     list_filter = ("parent",)
     list_editable = ("sort",)
@@ -128,6 +172,7 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     filter_horizontal = ("filter_attributes",)
 
+    @display(description="Изображение")
     def image_preview(self, obj):
         if obj.image:
             return format_html(
@@ -135,11 +180,10 @@ class CategoryAdmin(admin.ModelAdmin):
                 obj.image.url
             )
         return "—"
-    image_preview.short_description = "Изображение"
 
 
 @admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
+class BrandAdmin(ModelAdmin):
     list_display = ("name", "slug")
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
@@ -149,14 +193,14 @@ class BrandAdmin(admin.ModelAdmin):
 # АТРИБУТЫ
 # ============================================
 
-class AttributeValueInline(admin.TabularInline):
+class AttributeValueInline(TabularInline):
     model = AttributeValue
     extra = 3
     prepopulated_fields = {"slug": ("value",)}
 
 
 @admin.register(Attribute)
-class AttributeAdmin(admin.ModelAdmin):
+class AttributeAdmin(ModelAdmin):
     list_display = ("name", "slug", "is_filterable", "show_in_product_card", "values_count", "sort")
     list_filter = ("is_filterable", "show_in_product_card")
     search_fields = ("name",)
@@ -164,13 +208,13 @@ class AttributeAdmin(admin.ModelAdmin):
     list_editable = ("is_filterable", "show_in_product_card", "sort")
     inlines = [AttributeValueInline]
 
+    @display(description="Значений")
     def values_count(self, obj):
         return obj.values.count()
-    values_count.short_description = "Значений"
 
 
 @admin.register(AttributeValue)
-class AttributeValueAdmin(admin.ModelAdmin):
+class AttributeValueAdmin(ModelAdmin):
     list_display = ("value", "attribute", "slug", "sort")
     list_filter = ("attribute",)
     search_fields = ("value", "attribute__name")
@@ -182,12 +226,12 @@ class AttributeValueAdmin(admin.ModelAdmin):
 # ТОВАРЫ
 # ============================================
 
-class ProductImageInline(admin.TabularInline):
+class ProductImageInline(TabularInline):
     model = ProductImage
     extra = 1
 
 
-class ProductAttributeValueInline(admin.TabularInline):
+class ProductAttributeValueInline(TabularInline):
     """Инлайн для выбора значений атрибутов товара"""
     model = ProductAttributeValue
     extra = 1
@@ -196,7 +240,7 @@ class ProductAttributeValueInline(admin.TabularInline):
     verbose_name_plural = "Атрибуты товара (для вариаций)"
 
 
-class ProductVariantInline(admin.TabularInline):
+class ProductVariantInline(TabularInline):
     """Инлайн для отображения вариаций товара"""
     model = ProductVariant
     extra = 0
@@ -205,20 +249,20 @@ class ProductVariantInline(admin.TabularInline):
     can_delete = True
     show_change_link = True
 
+    @display(description="Комбинация атрибутов")
     def attribute_values_display(self, obj):
         if obj.pk:
             return obj.get_attribute_values_display() or "—"
         return "—"
-    attribute_values_display.short_description = "Комбинация атрибутов"
 
     def has_add_permission(self, request, obj=None):
         return False
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(ModelAdmin):
     form = ProductAdminForm
-    action_form = ProductAdminActionForm
+    action_form = ProductAdminActionForm  # Работает с unfold!
 
     list_per_page = 100
     actions_on_top = True
@@ -230,6 +274,11 @@ class ProductAdmin(admin.ModelAdmin):
         "is_popular", "is_bestseller", "is_new", "is_sale", "is_active",
         "variants_count",
     )
+
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
     list_filter = ("is_active", "is_popular", "is_bestseller", "is_new", "is_sale", "category", "brand")
     # ВАЖНО: list_editable даёт "массовое редактирование" прямо в списке
     list_editable = ("price", "old_price", "is_popular", "is_bestseller", "is_new", "is_sale", "is_active")
@@ -282,7 +331,14 @@ class ProductAdmin(admin.ModelAdmin):
         ("Отображение вариаций", {"fields": ("variation_attributes", "spec_attributes")}),
     )
 
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        """Явно указываем использование ProductAdminForm"""
+        kwargs['form'] = ProductAdminForm
+        return super().get_form(request, obj, change, **kwargs)
+
+
     # ---------- ВЫЧИСЛЯЕМОЕ ПОЛЕ: Скидка % ----------
+    @display(description="Скидка", ordering="old_price")
     def discount_percent_display(self, obj):
         try:
             if obj.old_price and obj.price and obj.old_price > obj.price:
@@ -291,34 +347,38 @@ class ProductAdmin(admin.ModelAdmin):
         except Exception:
             pass
         return "—"
-    discount_percent_display.short_description = "Скидка"
 
+    @display(description="Вариаций", ordering="name")
     def variants_count(self, obj):
         count = obj.variants.filter(is_active=True).count()
         if count > 0:
             return format_html('<span style="color: green; font-weight: bold;">{}</span>', count)
         return "—"
-    variants_count.short_description = "Вариаций"
 
+    @display(description="Превью", label=True)
     def image_preview(self, obj):
         if obj.main_image:
-            return format_html('<img src="{}" style="max-height: 150px; max-width: 200px;" />', obj.main_image.url)
-        return "Нет изображения"
-    image_preview.short_description = "Превью"
+            return format_html(
+                '<div style="padding: 10px;"><img src="{}" style="max-height: 150px; max-width: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" /></div>',
+                obj.main_image.url
+            )
+        return format_html('<span style="color: #999;">Нет изображения</span>', '')
 
+    @display(description="Создать вариации", label=True)
     def generate_variations_button(self, obj):
         if obj.pk:
             attr_count = obj.attribute_values.count()
             if attr_count > 0:
                 return format_html(
-                    '<a class="button" href="{}">Создать вариации</a>'
-                    '<p class="help">Выбрано {} значений атрибутов. Будут созданы все возможные комбинации.</p>',
+                    '<div style="padding: 10px;">'
+                    '<a class="button" style="display: inline-block; padding: 10px 20px; background: #417690; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;" href="{}">📦 Создать вариации</a>'
+                    '<p style="margin-top: 10px; color: #666; font-size: 13px;">✓ Выбрано {} значений атрибутов. Будут созданы все возможные комбинации.</p>'
+                    '</div>',
                     "generate-variations/",
                     attr_count
                 )
-            return format_html('<span style="color: #999;">Сначала добавьте значения атрибутов ниже</span>')
-        return format_html('<span style="color: #999;">Сначала сохраните товар</span>')
-    generate_variations_button.short_description = "Создать вариации"
+            return format_html('<div style="padding: 10px;"><span style="color: #999;">⚠️ Сначала добавьте значения атрибутов ниже</span></div>')
+        return format_html('<div style="padding: 10px;"><span style="color: #999;">💾 Сначала сохраните товар</span></div>', '')
 
     # ---------- ACTIONS: массовые флаги ----------
     @admin.action(description='Отметить: "Популярное"')
@@ -372,8 +432,9 @@ class ProductAdmin(admin.ModelAdmin):
         messages.success(request, f"Обновлено товаров: {updated}")
 
     # ---------- ACTIONS: скидки (процент или цена) ----------
-    @admin.action(description='Применить скидку (используйте поля "Скидка, %%" или "Цена со скидкой" сверху)')
+    @admin.action(description='💰 Применить скидку (используйте поля внизу)')
     def action_apply_discount(self, request, queryset):
+        """Применяет скидку к выбранным товарам используя данные из action_form"""
         # Из-за actions_on_top + actions_on_bottom поля дублируются (2 раза).
         # request.POST.get() часто берёт последнее значение (может быть пустым).
         # Поэтому нормализуем POST: берём ПЕРВОЕ НЕПУСТОЕ значение каждого поля.
@@ -441,7 +502,7 @@ class ProductAdmin(admin.ModelAdmin):
 
             updated += 1
 
-        messages.success(request, f"Скидка применена к товарам: {updated}")
+        messages.success(request, f"✅ Скидка применена к товарам: {updated}")
 
     @admin.action(description="Сбросить скидку (вернуть old_price -> price и очистить old_price)")
     def action_clear_discount(self, request, queryset):
@@ -488,7 +549,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductVariant)
-class ProductVariantAdmin(admin.ModelAdmin):
+class ProductVariantAdmin(ModelAdmin):
     list_display = ("__str__", "product", "sku", "price", "stock", "is_active")
     list_filter = ("is_active", "product__category")
     search_fields = ("sku", "product__name")
@@ -505,15 +566,15 @@ class ProductVariantAdmin(admin.ModelAdmin):
         ("Цены и наличие", {"fields": ("sku", "price", "old_price", "stock", "is_active")}),
     )
 
+    @display(description="Текущая комбинация")
     def attribute_values_display(self, obj):
         if obj.pk:
             return obj.get_attribute_values_display() or "Не выбрано"
         return "—"
-    attribute_values_display.short_description = "Текущая комбинация"
 
 
 @admin.register(Review)
-class ReviewAdmin(admin.ModelAdmin):
+class ReviewAdmin(ModelAdmin):
     list_display = ("id", "product", "author_name", "rating", "status", "is_verified_purchase", "created_at")
     list_filter = ("status", "rating", "is_verified_purchase", "created_at")
     search_fields = ("author_name", "product__name", "text", "title")
