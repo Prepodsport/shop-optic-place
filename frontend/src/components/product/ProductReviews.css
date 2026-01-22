@@ -418,6 +418,16 @@
   border-color: var(--primary);
   color: var(--primary);
 }
+.reviews__helpful-btn.is-selected {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.reviews__helpful-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* Адаптив */
 @media (max-width: 768px) {

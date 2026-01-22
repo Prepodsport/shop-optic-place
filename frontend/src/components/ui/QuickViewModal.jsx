@@ -267,7 +267,7 @@ export default function QuickViewModal({ productSlug, onClose }) {
               <h2 className="quick-view-title">{product.name}</h2>
 
               <div className="quick-view-meta">
-                {product.category?.name} / {product.brand?.name || "Без бренда"}
+                {product.category?.name}  •  {product.brand?.name || "Без бренда"}
               </div>
 
               {/* Price */}

@@ -34,6 +34,16 @@ class Category(models.Model):
         blank=True,
         help_text="Изображение для отображения на главной странице"
     )
+
+    mega_menu_attributes = models.ManyToManyField(
+        "catalog.Attribute",
+        blank=True,
+        related_name="categories_mega_menu",
+        verbose_name="Атрибуты мегаменю",
+        help_text="Какие атрибуты показывать в мегаменю для этой категории (например 1–3). "
+                  "Если не выбрано — в мегаменю фильтры не показываем."
+    )
+
     sort = models.PositiveIntegerField("Сортировка", default=0)
 
     class Meta:
@@ -436,7 +446,7 @@ class Review(models.Model):
         blank=True
     )
     text = models.TextField(
-        "Текст отзыва"
+        "Текст отзыва",
     )
     advantages = models.TextField(
         "Достоинства",

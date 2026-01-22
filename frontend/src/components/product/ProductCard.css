@@ -1,4 +1,5 @@
 .product-card {
+  position: relative; /* важно для абсолютного cover-link */
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -14,12 +15,25 @@
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
 
-.product-card__link {
-  text-decoration: none;
+/* Растянутая ссылка на товар: покрывает всю карточку */
+.product-card__cover-link {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: block;
+  text-decoration: none !important;
   color: inherit;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+}
+
+.product-card__cover-link:hover,
+.product-card__cover-link:focus,
+.product-card__cover-link:active {
+  text-decoration: none !important;
+}
+
+.product-card__cover-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 /* Изображение */
@@ -66,7 +80,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  z-index: 2;
+  z-index: 20; /* выше cover-link */
 }
 
 /* Оверлей с кнопками */
@@ -80,7 +94,7 @@
   opacity: 0;
   transform: translateX(10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 2;
+  z-index: 20; /* выше cover-link */
 }
 
 .product-card--hovered .product-card__overlay {
@@ -124,6 +138,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 20; /* на всякий случай, чтобы текст не “перехватывался” */
 }
 
 .product-card__meta {
@@ -132,19 +148,60 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
+  position: relative;
+  z-index: 20; /* выше cover-link */
+}
+
+/* Ссылки категории/бренда должны быть выше cover-link */
+.product-card__category-link {
+  position: relative;
+  z-index: 20;
+  color: #2563eb;
+  text-decoration: none !important;
+  font-weight: 500;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.product-card__category-link:hover {
+  color: white;
+  background: #2563eb;
+  text-decoration: none !important;
+}
+
+.product-card__brand-link {
+  position: relative;
+  z-index: 20;
+  color: #f59e0b;
+  text-decoration: none !important;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.product-card__brand-link:hover {
+  color: white;
+  background: #f59e0b;
+  text-decoration: none !important;
 }
 
 .product-card__title {
   font-size: 15px;
   font-weight: 500;
   color: var(--text);
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex: 1;
+}
+
+.product-card__rating {
+  margin-bottom: 8px;
 }
 
 .product-card__price-wrap {
@@ -169,6 +226,8 @@
 /* Кнопка в корзину */
 .product-card__actions {
   padding: 0 16px 16px;
+  position: relative;
+  z-index: 20; /* выше cover-link */
 }
 
 .product-card__cart-btn {

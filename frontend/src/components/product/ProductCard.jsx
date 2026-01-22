@@ -3,36 +3,29 @@ import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext.jsx";
 import { useFavorites } from "../../context/FavoritesContext.jsx";
 import Badge, { calcDiscountPercent } from "../ui/Badge.jsx";
+import StarRating from "../ui/StarRating.jsx";
 import "./ProductCard.css";
 
-/**
- * Карточка товара.
- *
- * @param {Object} product - Данные товара
- * @param {function} onQuickView - Callback для быстрого просмотра
- */
 export default function ProductCard({ product, onQuickView }) {
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart, isInCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
 
-  // Товар с вариациями - нельзя добавлять в корзину без выбора
   const hasVariations = Boolean(product.has_variations);
 
   const inCart = hasVariations ? false : isInCart(product.id);
   const inFavorites = isFavorite(product.id);
   const discountPercent = calcDiscountPercent(product.price, product.old_price);
 
+  const productUrl = `/product/${product.slug}`;
+
   const handleAddToCart = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
 
-      // Товары с вариациями открывают QuickView для выбора
       if (hasVariations) {
-        if (onQuickView) {
-          onQuickView(product.slug);
-        }
+        if (onQuickView) onQuickView(product.slug);
         return;
       }
 
@@ -54,9 +47,7 @@ export default function ProductCard({ product, onQuickView }) {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (onQuickView) {
-        onQuickView(product.slug);
-      }
+      if (onQuickView) onQuickView(product.slug);
     },
     [onQuickView, product.slug]
   );
@@ -67,87 +58,123 @@ export default function ProductCard({ product, onQuickView }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link to={`/product/${product.slug}`} className="product-card__link">
-        {/* Изображение */}
-        <div className="product-card__image-wrap">
-          {product.main_image_url ? (
-            <img
-              src={product.main_image_url}
-              alt={product.name}
-              className="product-card__image"
-              loading="lazy"
-            />
-          ) : (
-            <div className="product-card__no-image">Нет фото</div>
+      {/* Изображение */}
+      <div className="product-card__image-wrap">
+        {product.main_image_url ? (
+          <img
+            src={product.main_image_url}
+            alt={product.name}
+            className="product-card__image"
+            loading="lazy"
+          />
+        ) : (
+          <div className="product-card__no-image">Нет фото</div>
+        )}
+
+        {/* Бейджи */}
+        <div className="product-card__badges">
+          {discountPercent > 0 && (
+            <Badge type="discount">Скидка -{discountPercent}%</Badge>
+          )}
+          {product.is_sale && <Badge type="sale">Распродажа</Badge>}
+          {product.is_new && <Badge type="new">Новинка</Badge>}
+          {product.is_bestseller && <Badge type="bestseller">Хит</Badge>}
+          {product.is_popular && !product.is_bestseller && (
+            <Badge type="popular">Популярное</Badge>
+          )}
+        </div>
+
+        {/* Оверлей с кнопками при наведении */}
+        <div className="product-card__overlay">
+          <button
+            className="product-card__icon-btn"
+            onClick={handleQuickView}
+            title="Быстрый просмотр"
+            type="button"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+
+          <button
+            className={`product-card__icon-btn ${inFavorites ? "product-card__icon-btn--active" : ""}`}
+            onClick={handleToggleFavorite}
+            title={inFavorites ? "Убрать из избранного" : "В избранное"}
+            type="button"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill={inFavorites ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Информация */}
+      <div className="product-card__info">
+        {/* Категория и бренд */}
+        <div className="product-card__meta">
+          {product.category && (
+            <Link
+              to={`/catalog?category=${product.category.slug}`}
+              className="product-card__category-link"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {product.category.name}
+            </Link>
           )}
 
-          {/* Бейджи */}
-          <div className="product-card__badges">
-            {discountPercent > 0 && (
-              <Badge type="discount">Скидка -{discountPercent}%</Badge>
-            )}
-            {product.is_sale && <Badge type="sale">Распродажа</Badge>}
-            {product.is_new && <Badge type="new">Новинка</Badge>}
-            {product.is_bestseller && <Badge type="bestseller">Хит</Badge>}
-            {product.is_popular && !product.is_bestseller && (
-              <Badge type="popular">Популярное</Badge>
-            )}
-          </div>
-
-          {/* Оверлей с кнопками при наведении */}
-          <div className="product-card__overlay">
-            <button
-              className="product-card__icon-btn"
-              onClick={handleQuickView}
-              title="Быстрый просмотр"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-            <button
-              className={`product-card__icon-btn ${inFavorites ? "product-card__icon-btn--active" : ""}`}
-              onClick={handleToggleFavorite}
-              title={inFavorites ? "Убрать из избранного" : "В избранное"}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill={inFavorites ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-              </svg>
-            </button>
-          </div>
+          {product.brand && (
+            <>
+              <span> • </span>
+              <Link
+                to={`/catalog?brand=${product.brand.slug}`}
+                className="product-card__brand-link"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {product.brand.name}
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Информация */}
-        <div className="product-card__info">
-          {/* Категория и бренд */}
-          <div className="product-card__meta">
-            {product.category?.name}
-            {product.brand && ` • ${product.brand.name}`}
+        {/* Название */}
+        <h3 className="product-card__title">{product.name}</h3>
+
+        {/* Рейтинг */}
+        {product.average_rating > 0 && (
+          <div className="product-card__rating">
+            <StarRating
+              rating={product.average_rating}
+              count={product.reviews_count}
+              size="small"
+              showCount={true}
+            />
           </div>
+        )}
 
-          {/* Название */}
-          <h3 className="product-card__title">{product.name}</h3>
-
-          {/* Цена */}
-          <div className="product-card__price-wrap">
-            <span className="product-card__price">
-              {parseFloat(product.price).toLocaleString("ru-RU")} ₽
+        {/* Цена */}
+        <div className="product-card__price-wrap">
+          <span className="product-card__price">
+            {parseFloat(product.price).toLocaleString("ru-RU")} ₽
+          </span>
+          {product.old_price && (
+            <span className="product-card__old-price">
+              {parseFloat(product.old_price).toLocaleString("ru-RU")} ₽
             </span>
-            {product.old_price && (
-              <span className="product-card__old-price">
-                {parseFloat(product.old_price).toLocaleString("ru-RU")} ₽
-              </span>
-            )}
-          </div>
+          )}
         </div>
-      </Link>
+      </div>
 
       {/* Кнопка в корзину / выбрать параметры */}
       <div className="product-card__actions">
         <button
-          className={`product-card__cart-btn ${inCart ? "product-card__cart-btn--in-cart" : ""} ${hasVariations ? "product-card__cart-btn--variants" : ""}`}
+          className={`product-card__cart-btn ${inCart ? "product-card__cart-btn--in-cart" : ""} ${
+            hasVariations ? "product-card__cart-btn--variants" : ""
+          }`}
           onClick={handleAddToCart}
+          type="button"
         >
           {inCart ? (
             <>
@@ -176,6 +203,13 @@ export default function ProductCard({ product, onQuickView }) {
           )}
         </button>
       </div>
+
+      {/* Cover-link: делает кликабельной всю карточку, но НЕ нарушает HTML и не вложен в другие ссылки */}
+      <Link
+        to={productUrl}
+        className="product-card__cover-link"
+        aria-label={`Открыть товар: ${product.name}`}
+      />
     </article>
   );
 }

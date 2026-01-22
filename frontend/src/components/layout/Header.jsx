@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, forwardRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext.jsx";
 import { useFavorites } from "../../context/FavoritesContext.jsx";
 import { useTheme } from "../../theme.jsx";
@@ -16,10 +16,12 @@ const Header = forwardRef(function Header(_, ref) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const searchRef = useRef(null);
+  const userMenuRef = useRef(null);
   const { totalItems } = useCart();
   const { count: favoritesCount } = useFavorites();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Печатающийся placeholder (показываем только когда нет фокуса и нет текста)
   const typingPlaceholder = useTypingPlaceholder(searchPlaceholders, 100, 50, 2000);
@@ -38,6 +40,22 @@ const Header = forwardRef(function Header(_, ref) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Закрытие меню пользователя при клике вне области
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Закрытие меню пользователя при переходе на другую страницу
+  useEffect(() => {
+    setShowUserMenu(false);
+  }, [location]);
 
   // Живой поиск с debounce
   useEffect(() => {
@@ -215,7 +233,7 @@ const Header = forwardRef(function Header(_, ref) {
           </Link>
 
           {/* Пользователь */}
-          <div className="header__user">
+          <div className="header__user" ref={userMenuRef}>
             <button
               className="header__action-btn"
               onClick={() => setShowUserMenu(!showUserMenu)}

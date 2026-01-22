@@ -125,6 +125,8 @@ class ProductListSerializer(serializers.ModelSerializer):
     main_image_url = serializers.SerializerMethodField()
     has_variations = serializers.SerializerMethodField()
     price_range = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    reviews_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -133,6 +135,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "category", "brand", "main_image_url",
             "is_popular", "is_bestseller", "is_new", "is_sale",
             "has_variations", "price_range",
+            "average_rating", "reviews_count",
         )
 
     @extend_schema_field(serializers.CharField)
@@ -154,6 +157,17 @@ class ProductListSerializer(serializers.ModelSerializer):
                 "max": str(max_price)
             }
         return None
+
+    @extend_schema_field(serializers.FloatField)
+    def get_average_rating(self, obj) -> float:
+        """Возвращает средний рейтинг товара"""
+        from django.db.models import Avg
+        avg = obj.reviews.filter(status='approved').aggregate(avg_rating=Avg("rating"))["avg_rating"]
+        return round(float(avg), 1) if avg else 0.0
+
+    def get_reviews_count(self, obj) -> int:
+        """Возвращает количество одобренных отзывов"""
+        return obj.reviews.filter(status='approved').count()
 
 
 class ProductAttributeValueSerializer(serializers.ModelSerializer):

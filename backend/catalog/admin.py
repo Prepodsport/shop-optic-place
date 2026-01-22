@@ -170,7 +170,13 @@ class CategoryAdmin(ModelAdmin):
     list_editable = ("sort",)
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
-    filter_horizontal = ("filter_attributes",)
+    filter_horizontal = ("filter_attributes", "mega_menu_attributes",)
+
+    fieldsets = (
+        ("Основное", {"fields": ("name", "slug", "parent", "sort", "image")}),
+        ("Фильтры каталога", {"fields": ("filter_attributes",)}),
+        ("Мегаменю", {"fields": ("mega_menu_attributes",)}),
+    )
 
     @display(description="Изображение")
     def image_preview(self, obj):
@@ -279,6 +285,7 @@ class ProductAdmin(ModelAdmin):
         css = {
             'all': ('admin/css/custom_admin.css',)
         }
+        js = ('admin/js/custom_admin.js',)
     list_filter = ("is_active", "is_popular", "is_bestseller", "is_new", "is_sale", "category", "brand")
     # ВАЖНО: list_editable даёт "массовое редактирование" прямо в списке
     list_editable = ("price", "old_price", "is_popular", "is_bestseller", "is_new", "is_sale", "is_active")
@@ -573,37 +580,132 @@ class ProductVariantAdmin(ModelAdmin):
         return "—"
 
 
+from django.utils import timezone
+from django.utils.html import format_html
+from django.contrib import admin, messages
+from unfold.admin import ModelAdmin
+from unfold.decorators import display
+
+from .models import Review
+
+
 @admin.register(Review)
 class ReviewAdmin(ModelAdmin):
-    list_display = ("id", "product", "author_name", "rating", "status", "is_verified_purchase", "created_at")
+    class Media:
+        css = {
+            "all": ("admin/css/custom_admin.css",)
+        }
+    list_display = (
+        "id", "product", "author_name", "rating",
+        "review_preview", "status", "is_verified_purchase", "created_at",
+    )
+    list_display_links = ("id", "author_name")
     list_filter = ("status", "rating", "is_verified_purchase", "created_at")
     search_fields = ("author_name", "product__name", "text", "title")
     raw_id_fields = ("product", "user")
-    readonly_fields = ("created_at", "updated_at", "helpful_count", "not_helpful_count")
-    list_editable = ("status",)
     ordering = ("-created_at",)
     actions = ["approve_reviews", "reject_reviews"]
+    list_editable = ("status",)
+
+    # Всё, что показываем в "Содержимом", делаем readonly через *_display
+    readonly_fields = (
+        "created_at", "updated_at",
+        "helpful_count", "not_helpful_count",
+        "title_display", "review_text_display", "advantages_display", "disadvantages_display",
+    )
 
     fieldsets = (
         ("Основное", {
-            "fields": ("product", "user", "author_name", "rating", "status")
+            "fields": ("product", "user", "author_name", "rating", "status"),
         }),
-        ("Содержимое", {
-            "fields": ("title", "text", "advantages", "disadvantages")
+
+        ("📝 Содержимое отзыва", {
+            "fields": ("title_display", "review_text_display", "advantages_display", "disadvantages_display"),
+            "description": "Отображение данных, как их оставил пользователь (только просмотр).",
+            "classes": ("collapse",),
         }),
-        ("Дополнительно", {
-            "fields": ("is_verified_purchase", "helpful_count", "not_helpful_count")
+
+        ("✏️ Редактировать отзыв", {
+            "fields": ("title", "text", "advantages", "disadvantages"),
+            "classes": ("collapse",),
+            "description": "Раскройте секцию, чтобы отредактировать отзыв (вносите изменения осознанно).",
         }),
-        ("Ответ магазина", {
+
+        ("💬 Ответ магазина", {
             "fields": ("admin_response", "admin_response_at"),
-            "classes": ("collapse",)
+            "classes": ("collapse",),
         }),
-        ("Даты", {
+
+        ("ℹ️ Дополнительная информация", {
+            "fields": ("is_verified_purchase", "helpful_count", "not_helpful_count"),
+            "classes": ("collapse",),
+        }),
+
+        ("📅 Даты", {
             "fields": ("created_at", "updated_at"),
-            "classes": ("collapse",)
+            "classes": ("collapse",),
         }),
     )
 
+    # ---------- display поля для "только просмотр" ----------
+    @display(description="Заголовок")
+    def title_display(self, obj):
+        val = (obj.title or "").strip()
+        if not val:
+            return "—"
+        return format_html(
+            '<div style="white-space: pre-wrap; padding: 10px; background: #f5f5f5; border-radius: 4px;">{}</div>',
+            val
+        )
+
+    @display(description="Текст отзыва")
+    def review_text_display(self, obj):
+        val = (obj.text or "").strip()
+        if not val:
+            return "—"
+        return format_html(
+            '<div style="white-space: pre-wrap; padding: 10px; background: #f5f5f5; border-radius: 4px;">{}</div>',
+            val
+        )
+
+    @display(description="Достоинства")
+    def advantages_display(self, obj):
+        val = (obj.advantages or "").strip()
+        if not val:
+            return "—"
+        return format_html(
+            '<div style="white-space: pre-wrap; padding: 10px; background: #f5f5f5; border-radius: 4px;">{}</div>',
+            val
+        )
+
+    @display(description="Недостатки")
+    def disadvantages_display(self, obj):
+        val = (obj.disadvantages or "").strip()
+        if not val:
+            return "—"
+        return format_html(
+            '<div style="white-space: pre-wrap; padding: 10px; background: #f5f5f5; border-radius: 4px;">{}</div>',
+            val
+        )
+
+    # ---------- превью в списке ----------
+    @display(description="Превью отзыва")
+    def review_preview(self, obj):
+        val = (obj.text or "").strip()
+        if not val:
+            return "—"
+        return val[:50] + "..." if len(val) > 50 else val
+
+    # ---------- авто-дата ответа магазина ----------
+    def save_model(self, request, obj, form, change):
+        if "admin_response" in form.changed_data:
+            if (obj.admin_response or "").strip():
+                obj.admin_response_at = timezone.now()
+            else:
+                obj.admin_response_at = None
+        super().save_model(request, obj, form, change)
+
+    # ---------- actions ----------
     @admin.action(description="Одобрить выбранные отзывы")
     def approve_reviews(self, request, queryset):
         updated = queryset.update(status=Review.STATUS_APPROVED)
@@ -613,3 +715,4 @@ class ReviewAdmin(ModelAdmin):
     def reject_reviews(self, request, queryset):
         updated = queryset.update(status=Review.STATUS_REJECTED)
         messages.success(request, f"Отклонено отзывов: {updated}")
+

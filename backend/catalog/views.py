@@ -38,6 +38,67 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     lookup_field = "slug"
 
+    @action(detail=True, methods=["get"], url_path="menu-meta")
+    def menu_meta(self, request, *args, **kwargs):
+        category: Category = self.get_object()
+
+        products_qs = Product.objects.filter(category=category, is_active=True)
+        product_ids = products_qs.values_list("id", flat=True)
+
+        brands_qs = (
+            Brand.objects
+            .filter(products__category=category, products__is_active=True)
+            .distinct()
+            .order_by("name")
+        )
+
+        # ВАЖНО: для мегаменю — только явная настройка из админки
+        attrs_qs = category.mega_menu_attributes.all().order_by("sort", "name")[:3]
+        attr_ids = list(attrs_qs.values_list("id", flat=True))
+
+        # Если атрибуты для мегаменю не выбраны — отдаём пусто
+        if not attr_ids:
+            return Response({
+                "category": {"id": category.id, "name": category.name, "slug": category.slug},
+                "brands": [{"id": b.id, "name": b.name, "slug": b.slug} for b in brands_qs[:24]],
+                "attributes": [],
+            })
+
+        values_qs = (
+            AttributeValue.objects
+            .filter(attribute_id__in=attr_ids)
+            .filter(
+                Q(productattributevalue__product_id__in=product_ids) |
+                Q(variants__product_id__in=product_ids, variants__is_active=True)
+            )
+            .distinct()
+            .select_related("attribute")
+            .order_by("attribute__sort", "attribute__name", "sort", "value")
+        )
+
+        VALUES_PER_ATTR = 10
+        values_by_attr = {aid: [] for aid in attr_ids}
+
+        for v in values_qs:
+            bucket = values_by_attr.get(v.attribute_id)
+            if bucket is None or len(bucket) >= VALUES_PER_ATTR:
+                continue
+            bucket.append({"id": v.id, "value": v.value, "slug": v.slug})
+
+        attributes_out = []
+        for a in attrs_qs:
+            attributes_out.append({
+                "id": a.id,
+                "name": a.name,
+                "slug": a.slug,
+                "values": values_by_attr.get(a.id, []),
+            })
+
+        return Response({
+            "category": {"id": category.id, "name": category.name, "slug": category.slug},
+            "brands": [{"id": b.id, "name": b.name, "slug": b.slug} for b in brands_qs[:24]],
+            "attributes": attributes_out,
+        })
 
 class BrandViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
