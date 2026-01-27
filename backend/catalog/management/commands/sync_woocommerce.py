@@ -281,6 +281,9 @@ class Command(BaseCommand):
             # Определяем родителя
             parent = wc_id_to_category.get(parent_wc_id) if parent_wc_id else None
 
+            # Проверяем, является ли категория "Uncategorized" или пустой
+            is_uncategorized = slug.lower() in ('uncategorized', 'bez-kategorii', 'без-категории')
+
             if self.dry_run:
                 status = 'существует' if category else 'новая'
                 parent_name = parent.name if parent else '-'
@@ -301,6 +304,11 @@ class Command(BaseCommand):
                     changes.append(f'родитель: {old_parent} -> {new_parent}')
                     category.parent = parent
 
+                # Устанавливаем is_active для uncategorized
+                if is_uncategorized and category.is_active:
+                    changes.append('активность: True -> False (uncategorized)')
+                    category.is_active = False
+
                 if changes:
                     category.slug = ensure_unique_slug(slug, Category, category)
                     category.save()
@@ -316,9 +324,11 @@ class Command(BaseCommand):
                     name=name,
                     slug=ensure_unique_slug(slug, Category),
                     parent=parent,
+                    is_active=not is_uncategorized,  # Uncategorized создаём неактивной
                 )
                 self.stats['categories_created'] += 1
-                self.stdout.write(f'  + {name}: создана')
+                status_text = 'создана (неактивна)' if is_uncategorized else 'создана'
+                self.stdout.write(f'  + {name}: {status_text}')
                 self.categories_cache[name.lower()] = category
                 self.categories_cache[f'slug:{category.slug}'] = category
 
@@ -642,9 +652,11 @@ class Command(BaseCommand):
 
         # Создаём новую категорию
         slug = make_slug(cat_name)
+        is_uncategorized = slug.lower() in ('uncategorized', 'bez-kategorii', 'без-категории')
         category = Category.objects.create(
             name=cat_name,
             slug=ensure_unique_slug(slug, Category),
+            is_active=not is_uncategorized,  # Uncategorized создаём неактивной
         )
         self.categories_cache[cat_name.lower()] = category
         self.stats['categories_created'] += 1

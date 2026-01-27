@@ -165,9 +165,9 @@ class ProductAdminForm(forms.ModelForm):
 
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
-    list_display = ("name", "slug", "parent", "sort", "image_preview")
-    list_filter = ("parent",)
-    list_editable = ("sort",)
+    list_display = ("name", "slug", "parent", "products_count", "sort", "is_active", "image_preview")
+    list_filter = ("parent", "is_active")
+    list_editable = ("sort", "is_active")
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
     filter_horizontal = ("filter_attributes", "mega_menu_attributes",)
@@ -177,6 +177,10 @@ class CategoryAdmin(ModelAdmin):
         ("Фильтры каталога", {"fields": ("filter_attributes",)}),
         ("Мегаменю", {"fields": ("mega_menu_attributes",)}),
     )
+
+    @display(description="Товаров", ordering="name")
+    def products_count(self, obj):
+        return obj.products.filter(is_active=True).count()
 
     @display(description="Изображение")
     def image_preview(self, obj):

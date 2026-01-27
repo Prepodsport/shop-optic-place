@@ -34,7 +34,7 @@ class ProductFilter(FilterSet):
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
-    queryset = Category.objects.all()
+    queryset = Category.objects.filter(is_active=True)
     serializer_class = CategorySerializer
     lookup_field = "slug"
 
@@ -300,8 +300,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         base_qs = base_qs.distinct()
         product_ids = list(base_qs.values_list("id", flat=True))
 
-        # Категории показываем постоянно
-        categories = Category.objects.all()
+        # Категории показываем только активные
+        categories = Category.objects.filter(is_active=True)
 
         # Бренды: только те, у которых есть товары в текущей выборке
         if product_ids:

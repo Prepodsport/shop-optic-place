@@ -35,6 +35,8 @@ class Category(models.Model):
         help_text="Изображение для отображения на главной странице"
     )
 
+    is_active = models.BooleanField("Активна", default=True)
+
     mega_menu_attributes = models.ManyToManyField(
         "catalog.Attribute",
         blank=True,
