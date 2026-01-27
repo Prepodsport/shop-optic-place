@@ -451,7 +451,7 @@ export default function LensCalculator() {
                 {/* Ссылки */}
                 <div className="lens-calculator__actions">
                   <Link
-                    to={`/catalog?category=kontaktnye-linzy${analysis.hasAstigmatism ? "&attr_tip=toricheskie" : ""}`}
+                    to={`/catalog?category=kontaktnye-linzy${analysis.hasAstigmatism ? "&attr_tip-linz=astigmaticheskie-linzy" : ""}`}
                     className="btn primary"
                   >
                     Подобрать линзы в каталоге
