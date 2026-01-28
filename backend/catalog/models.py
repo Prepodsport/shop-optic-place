@@ -530,3 +530,72 @@ def product_update_rating(self):
 
 
 Product.update_rating = product_update_rating
+
+
+class CatalogSettings(models.Model):
+    """
+    Настройки каталога (singleton).
+    В админке всегда редактируется одна запись.
+    """
+    # Глобальные настройки фильтров
+    filters_enabled = models.BooleanField(
+        "Фильтры включены",
+        default=True,
+        help_text="Глобальное включение/отключение всех фильтров в каталоге"
+    )
+
+    # Показывать количество товаров
+    show_attribute_count = models.BooleanField(
+        "Показывать кол-во товаров в атрибутах",
+        default=True,
+        help_text="Показывать количество товаров рядом с каждым значением атрибута в фильтрах"
+    )
+    show_category_count = models.BooleanField(
+        "Показывать кол-во товаров в категориях",
+        default=True,
+        help_text="Показывать количество товаров рядом с каждой категорией"
+    )
+    show_brand_count = models.BooleanField(
+        "Показывать кол-во товаров в брендах",
+        default=True,
+        help_text="Показывать количество товаров рядом с каждым брендом"
+    )
+
+    # Количество значений для показа
+    max_attribute_values = models.PositiveIntegerField(
+        "Макс. значений атрибута",
+        default=5,
+        help_text="Сколько значений атрибута показывать до кнопки 'Показать все'"
+    )
+    max_categories = models.PositiveIntegerField(
+        "Макс. категорий",
+        default=5,
+        help_text="Сколько категорий показывать до кнопки 'Показать все'"
+    )
+    max_brands = models.PositiveIntegerField(
+        "Макс. брендов",
+        default=5,
+        help_text="Сколько брендов показывать до кнопки 'Показать все'"
+    )
+
+    class Meta:
+        verbose_name = "Настройки каталога"
+        verbose_name_plural = "Настройки каталога"
+
+    def save(self, *args, **kwargs):
+        # Singleton: всегда используем id=1
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Запрещаем удаление
+        pass
+
+    @classmethod
+    def get_settings(cls):
+        """Возвращает настройки, создаёт если нет"""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return "Настройки каталога"

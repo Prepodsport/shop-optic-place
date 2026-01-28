@@ -12,7 +12,8 @@ from django.contrib.admin.helpers import ActionForm
 
 from .models import (
     Category, Brand, Product, ProductImage,
-    Attribute, AttributeValue, ProductAttributeValue, ProductVariant, Review
+    Attribute, AttributeValue, ProductAttributeValue, ProductVariant, Review,
+    CatalogSettings
 )
 
 def money(val: Decimal) -> Decimal:
@@ -754,4 +755,45 @@ class ReviewAdmin(ModelAdmin):
     def reject_reviews(self, request, queryset):
         updated = queryset.update(status=Review.STATUS_REJECTED)
         messages.success(request, f"Отклонено отзывов: {updated}")
+
+
+# ============================================
+# НАСТРОЙКИ КАТАЛОГА (Singleton)
+# ============================================
+
+@admin.register(CatalogSettings)
+class CatalogSettingsAdmin(ModelAdmin):
+    """
+    Админка настроек каталога.
+    Singleton — всегда редактируется одна запись с id=1.
+    """
+    list_display = ("__str__", "filters_enabled", "show_attribute_count", "show_brand_count", "max_attribute_values")
+
+    fieldsets = (
+        ("Глобальные настройки", {
+            "fields": ("filters_enabled",),
+            "description": "Включение/отключение всех фильтров в каталоге"
+        }),
+        ("Показывать количество товаров", {
+            "fields": ("show_attribute_count", "show_category_count", "show_brand_count"),
+            "description": "Показывать количество товаров рядом с каждым значением фильтра (например: Синий (12))"
+        }),
+        ("Количество элементов до 'Показать все'", {
+            "fields": ("max_attribute_values", "max_categories", "max_brands"),
+            "description": "Сколько значений показывать в каждом фильтре до кнопки 'Показать все'"
+        }),
+    )
+
+    def has_add_permission(self, request):
+        # Разрешаем добавление только если записи ещё нет
+        return not CatalogSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        # Запрещаем удаление
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        # Автоматически редиректим на единственную запись
+        obj = CatalogSettings.get_settings()
+        return redirect(f"admin:catalog_catalogsettings_change", obj.pk)
 

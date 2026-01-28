@@ -6,7 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q, Min, Max, F
 from django_filters.rest_framework import FilterSet, filters
 
-from .models import Category, Brand, Product, Attribute, AttributeValue, ProductVariant, ProductAttributeValue, Review
+from .models import Category, Brand, Product, Attribute, AttributeValue, ProductVariant, ProductAttributeValue, Review, CatalogSettings
 from .serializers import (
     CategorySerializer, BrandSerializer, ProductListSerializer, ProductDetailSerializer,
     AttributeSerializer, AttributeFilterSerializer,
@@ -236,6 +236,27 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             (1) вариаций (variants.attribute_values) с stock>0
             (2) атрибутов товара (ProductAttributeValue)
         """
+        # Получаем настройки каталога
+        settings = CatalogSettings.get_settings()
+
+        # Если фильтры глобально отключены
+        if not settings.filters_enabled:
+            return Response({
+                "attributes": [],
+                "categories": [],
+                "brands": [],
+                "price_range": {"min": "0", "max": "0"},
+                "settings": {
+                    "filters_enabled": False,
+                    "show_attribute_count": False,
+                    "show_category_count": False,
+                    "show_brand_count": False,
+                    "max_attribute_values": 5,
+                    "max_categories": 5,
+                    "max_brands": 5,
+                }
+            })
+
         category_slug = request.query_params.get("category") or ""
         brand_slug = request.query_params.get("brand") or ""
         search = request.query_params.get("search") or ""
@@ -273,7 +294,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                 pass
 
         # Применяем атрибутные фильтры (оптимизировано через подзапросы)
-        from django.db.models import Exists, OuterRef
+        from django.db.models import Exists, OuterRef, Count
 
         for attr_slug, value_slugs in attr_filters.items():
             if value_slugs:
@@ -299,15 +320,43 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         base_qs = base_qs.distinct()
         product_ids = list(base_qs.values_list("id", flat=True))
+        product_ids_set = set(product_ids)
 
-        # Категории показываем только активные
-        categories = Category.objects.filter(is_active=True)
+        # Категории с подсчётом товаров (ОПТИМИЗИРОВАНО - 1 запрос)
+        if settings.show_category_count:
+            categories = Category.objects.filter(is_active=True).annotate(
+                product_count=Count("products", filter=Q(products__is_active=True))
+            )
+        else:
+            categories = Category.objects.filter(is_active=True)
 
-        # Бренды: только те, у которых есть товары в текущей выборке
+        categories_data = []
+        for cat in categories:
+            cat_data = {"id": cat.id, "name": cat.name, "slug": cat.slug}
+            if settings.show_category_count:
+                cat_data["count"] = getattr(cat, "product_count", 0)
+            categories_data.append(cat_data)
+
+        # Бренды с подсчётом товаров
         if product_ids:
-            brands = Brand.objects.filter(products__id__in=product_ids).distinct()
+            if settings.show_brand_count:
+                from django.db.models import Count
+                brands = Brand.objects.filter(
+                    products__id__in=product_ids
+                ).annotate(
+                    product_count=Count("products", filter=Q(products__id__in=product_ids))
+                ).distinct()
+            else:
+                brands = Brand.objects.filter(products__id__in=product_ids).distinct()
         else:
             brands = Brand.objects.none()
+
+        brands_data = []
+        for brand in brands:
+            brand_data = {"id": brand.id, "name": brand.name, "slug": brand.slug}
+            if settings.show_brand_count:
+                brand_data["count"] = getattr(brand, "product_count", 0)
+            brands_data.append(brand_data)
 
         price_stats = base_qs.aggregate(min_price=Min("price"), max_price=Max("price"))
 
@@ -323,15 +372,27 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         attr_ids = list(attrs_qs.values_list("id", flat=True))
 
+        # Настройки для ответа
+        settings_data = {
+            "filters_enabled": settings.filters_enabled,
+            "show_attribute_count": settings.show_attribute_count,
+            "show_category_count": settings.show_category_count,
+            "show_brand_count": settings.show_brand_count,
+            "max_attribute_values": settings.max_attribute_values,
+            "max_categories": settings.max_categories,
+            "max_brands": settings.max_brands,
+        }
+
         if not product_ids or not attr_ids:
             return Response({
                 "attributes": [],
-                "categories": CategorySerializer(categories, many=True).data,
-                "brands": BrandSerializer(brands, many=True).data,
+                "categories": categories_data,
+                "brands": brands_data,
                 "price_range": {
                     "min": str(price_stats["min_price"] or 0),
                     "max": str(price_stats["max_price"] or 0),
-                }
+                },
+                "settings": settings_data
             })
 
         # Значения из вариаций (только те, что реально продаются)
@@ -356,23 +417,59 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             "attribute__sort", "attribute__name", "sort", "value"
         )
 
+        # Подсчёт товаров для каждого значения атрибута (ОПТИМИЗИРОВАНО - 2 запроса вместо сотен)
+        value_counts = {}
+        if settings.show_attribute_count and val_ids:
+            # Один запрос для вариаций
+            variant_counts = dict(
+                ProductVariant.objects.filter(
+                    product_id__in=product_ids,
+                    is_active=True,
+                    stock__gt=0,
+                    attribute_values__id__in=val_ids
+                ).values("attribute_values__id").annotate(
+                    cnt=Count("product_id", distinct=True)
+                ).values_list("attribute_values__id", "cnt")
+            )
+
+            # Один запрос для ProductAttributeValue
+            pav_counts = dict(
+                ProductAttributeValue.objects.filter(
+                    product_id__in=product_ids,
+                    attribute_value_id__in=val_ids
+                ).values("attribute_value_id").annotate(
+                    cnt=Count("product_id", distinct=True)
+                ).values_list("attribute_value_id", "cnt")
+            )
+
+            # Объединяем (берём максимум, т.к. товар может быть в обоих источниках)
+            for val_id in val_ids:
+                value_counts[val_id] = max(
+                    variant_counts.get(val_id, 0),
+                    pav_counts.get(val_id, 0)
+                )
+
         attrs_map = {a.id: {"id": a.id, "name": a.name, "slug": a.slug, "values": []} for a in attrs_qs}
 
         for v in values_qs:
             item = attrs_map.get(v.attribute_id)
             if item is not None:
-                item["values"].append({"id": v.id, "value": v.value, "slug": v.slug})
+                val_data = {"id": v.id, "value": v.value, "slug": v.slug}
+                if settings.show_attribute_count:
+                    val_data["count"] = value_counts.get(v.id, 0)
+                item["values"].append(val_data)
 
         attributes_out = [attrs_map[a.id] for a in attrs_qs if attrs_map[a.id]["values"]]
 
         return Response({
             "attributes": attributes_out,
-            "categories": CategorySerializer(categories, many=True).data,
-            "brands": BrandSerializer(brands, many=True).data,
+            "categories": categories_data,
+            "brands": brands_data,
             "price_range": {
                 "min": str(price_stats["min_price"] or 0),
                 "max": str(price_stats["max_price"] or 0),
-            }
+            },
+            "settings": settings_data
         })
 
 

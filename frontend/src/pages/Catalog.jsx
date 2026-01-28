@@ -19,6 +19,17 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
+// Дефолтные настройки фильтров (вынесены для переиспользования)
+const DEFAULT_FILTER_SETTINGS = {
+  filters_enabled: true,
+  show_attribute_count: false,
+  show_category_count: false,
+  show_brand_count: false,
+  max_attribute_values: 5,
+  max_categories: 5,
+  max_brands: 5,
+};
+
 export default function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -31,6 +42,7 @@ export default function Catalog() {
     brands: [],
     attributes: [],
     price_range: { min: "0", max: "100000" },
+    settings: { ...DEFAULT_FILTER_SETTINGS },
   });
 
   const [expandedAttrs, setExpandedAttrs] = useState({});
@@ -161,7 +173,20 @@ export default function Catalog() {
         : `/catalog/products/filters/`;
 
       const resp = await api.get(url);
-      setFilters(resp.data);
+
+      // Мержим настройки с дефолтными значениями для защиты от undefined
+      const responseData = {
+        categories: resp.data?.categories || [],
+        brands: resp.data?.brands || [],
+        attributes: resp.data?.attributes || [],
+        price_range: resp.data?.price_range || { min: "0", max: "100000" },
+        settings: {
+          ...DEFAULT_FILTER_SETTINGS,
+          ...(resp.data?.settings || {}),
+        },
+      };
+
+      setFilters(responseData);
 
       if (resp.data.attributes) {
         setAttrNamesCache((prev) => {
@@ -280,8 +305,16 @@ export default function Catalog() {
     );
   };
 
+  // Получаем настройки фильтров (с защитой от undefined)
+  const filterSettings = filters?.settings || {};
+  const maxBrands = Number(filterSettings.max_brands) || 5;
+  const maxAttrValues = Number(filterSettings.max_attribute_values) || 5;
+  const showBrandCount = Boolean(filterSettings.show_brand_count);
+  const showAttrCount = Boolean(filterSettings.show_attribute_count);
+  const showCategoryCount = Boolean(filterSettings.show_category_count);
+
   // Checkbox item component
-  const FilterCheckbox = ({ type = "radio", name, checked, onChange, label }) => (
+  const FilterCheckbox = ({ type = "radio", name, checked, onChange, label, count }) => (
     <label className="flex items-center gap-3 cursor-pointer text-sm py-2 px-2.5 rounded-[10px] transition-all duration-200 hover:bg-[var(--bg-secondary)]" style={{ color: 'var(--text)' }}>
       <input
         type={type}
@@ -305,6 +338,9 @@ export default function Catalog() {
       </span>
       <span className={`flex-1 leading-snug select-none transition-colors duration-200 ${checked ? "text-[var(--primary)] font-medium" : ""}`}>
         {label}
+        {count !== undefined && count !== null && (
+          <span className="ml-1.5 text-xs opacity-60">({count})</span>
+        )}
       </span>
     </label>
   );
@@ -369,6 +405,7 @@ export default function Catalog() {
                       checked={selectedCategory === cat.slug}
                       onChange={() => handleCategoryChange(cat.slug)}
                       label={cat.name}
+                      count={showCategoryCount ? cat.count : undefined}
                     />
                   ))}
                 </div>
@@ -393,18 +430,19 @@ export default function Catalog() {
                       onChange={() => updateFilters("brand", "")}
                       label="Все бренды"
                     />
-                    {(brandsExpanded ? filters.brands : filters.brands.slice(0, 5)).map((brand) => (
+                    {(brandsExpanded ? filters.brands : filters.brands.slice(0, maxBrands)).map((brand) => (
                       <FilterCheckbox
                         key={brand.id}
                         name="brand"
                         checked={selectedBrand === brand.slug}
                         onChange={() => updateFilters("brand", brand.slug)}
                         label={brand.name}
+                        count={showBrandCount ? brand.count : undefined}
                       />
                     ))}
                   </div>
 
-                  {filters.brands.length > 5 && (
+                  {filters.brands.length > maxBrands && (
                     <button
                       type="button"
                       className={`mt-2 w-full border-none text-[var(--primary)] text-[13px] font-medium cursor-pointer py-2.5 px-3.5 rounded-[10px] transition-all duration-200 flex items-center justify-center gap-1.5 hover:-translate-y-px ${
@@ -475,7 +513,7 @@ export default function Catalog() {
               {/* Attributes */}
               {filters.attributes.map((attr) => {
                 const isExpanded = !!expandedAttrs[attr.slug];
-                const displayValues = isExpanded ? attr.values : attr.values.slice(0, 5);
+                const displayValues = isExpanded ? attr.values : attr.values.slice(0, maxAttrValues);
 
                 return (
                   <FilterGroup
@@ -504,11 +542,12 @@ export default function Catalog() {
                           checked={isAttributeSelected(attr.slug, val.slug)}
                           onChange={() => updateAttributeFilter(attr.slug, val.slug)}
                           label={val.value}
+                          count={showAttrCount ? val.count : undefined}
                         />
                       ))}
                     </div>
 
-                    {attr.values.length > 5 && (
+                    {attr.values.length > maxAttrValues && (
                       <button
                         type="button"
                         className={`mt-2 w-full border-none text-[var(--primary)] text-[13px] font-medium cursor-pointer py-2.5 px-3.5 rounded-[10px] transition-all duration-200 flex items-center justify-center gap-1.5 hover:-translate-y-px ${
