@@ -39,3 +39,6 @@ frontend/tmpclaude-*
 
 # logs
 backend/logs/
+CLAUDE.md
+UNFOLD_SETUP.md
+export.csv
