@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { api, getTokens, getErrorMessage } from "../api.js";
-import "./Checkout.css";
 
 const SHIPPING_METHODS = [
   { id: "pickup", name: "Самовывоз", description: "Бесплатно. Адрес: г. Москва, ул. Примерная, 1", price: 0 },
@@ -24,10 +23,9 @@ export default function Checkout() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState(1); // 1 - контакты, 2 - доставка, 3 - оплата
+  const [step, setStep] = useState(1);
   const [orderComplete, setOrderComplete] = useState(null);
 
-  // Данные формы
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
@@ -45,7 +43,6 @@ export default function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
 
-  // Загрузка данных пользователя
   useEffect(() => {
     if (isAuthenticated) {
       api.get("/auth/me/").then((resp) => {
@@ -64,17 +61,36 @@ export default function Checkout() {
 
   if (isEmpty && !orderComplete) {
     return (
-      <div className="checkout">
-        <div className="checkout__container">
-          <div className="checkout__empty">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+        <div className="max-w-[1200px] mx-auto">
+          <div
+            className="text-center py-20 px-5 rounded-2xl border"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            <svg
+              className="mb-5"
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              style={{ color: 'var(--muted)' }}
+            >
               <circle cx="9" cy="21" r="1"></circle>
               <circle cx="20" cy="21" r="1"></circle>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
             </svg>
-            <h3>Корзина пуста</h3>
-            <p>Добавьте товары из каталога для оформления заказа</p>
-            <Link to="/catalog" className="checkout__btn checkout__btn--primary">
+            <h3 className="m-0 mb-3 text-[22px]" style={{ color: 'var(--text)' }}>
+              Корзина пуста
+            </h3>
+            <p className="m-0 mb-6 text-base" style={{ color: 'var(--muted)' }}>
+              Добавьте товары из каталога для оформления заказа
+            </p>
+            <Link
+              to="/catalog"
+              className="inline-flex items-center justify-center py-3.5 px-6 bg-[var(--primary)] border border-[var(--primary)] rounded-[10px] text-white text-[15px] font-semibold no-underline cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 hover:no-underline"
+            >
               Перейти в каталог
             </Link>
           </div>
@@ -85,31 +101,45 @@ export default function Checkout() {
 
   if (orderComplete) {
     return (
-      <div className="checkout">
-        <div className="checkout__container">
-          <div className="checkout__success">
-            <div className="checkout__success-icon">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+        <div className="max-w-[1200px] mx-auto">
+          <div
+            className="text-center py-15 px-5 rounded-2xl border"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            <div className="mb-6">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-500">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
             </div>
-            <h2>Заказ успешно оформлен!</h2>
-            <p className="checkout__success-order">Номер заказа: <strong>#{orderComplete.id}</strong></p>
-            <p className="checkout__success-text">
+            <h2 className="m-0 mb-4 text-[28px]" style={{ color: 'var(--text)' }}>
+              Заказ успешно оформлен!
+            </h2>
+            <p className="text-lg m-0 mb-3" style={{ color: 'var(--text)' }}>
+              Номер заказа: <strong>#{orderComplete.id}</strong>
+            </p>
+            <p className="text-[15px] m-0 mb-5 max-w-[400px] mx-auto" style={{ color: 'var(--muted)' }}>
               Мы отправили подтверждение на <strong>{orderComplete.email}</strong>.
               {formData.payment_method === "card" && " Ожидайте перенаправление на страницу оплаты."}
             </p>
-            <div className="checkout__success-total">
+            <div className="text-xl mb-8" style={{ color: 'var(--text)' }}>
               Сумма к оплате: <strong>{orderComplete.grand_total?.toLocaleString("ru-RU")} ₽</strong>
             </div>
-            <div className="checkout__success-actions">
+            <div className="flex gap-3 justify-center flex-wrap sm:flex-col">
               {isAuthenticated && (
-                <Link to="/account" className="checkout__btn">
+                <Link
+                  to="/account"
+                  className="inline-flex items-center justify-center py-3.5 px-6 bg-transparent border border-[var(--border)] rounded-[10px] text-[15px] font-semibold no-underline cursor-pointer transition-all duration-200 hover:bg-[var(--bg)] hover:no-underline"
+                  style={{ color: 'var(--text)' }}
+                >
                   Мои заказы
                 </Link>
               )}
-              <Link to="/catalog" className="checkout__btn checkout__btn--primary">
+              <Link
+                to="/catalog"
+                className="inline-flex items-center justify-center py-3.5 px-6 bg-[var(--primary)] border border-[var(--primary)] rounded-[10px] text-white text-[15px] font-semibold no-underline cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 hover:no-underline"
+              >
                 Продолжить покупки
               </Link>
             </div>
@@ -226,11 +256,6 @@ export default function Checkout() {
       const resp = await api.post("/orders/checkout/", checkoutData);
       setOrderComplete(resp.data);
       clearCart();
-
-      // Если оплата картой - здесь будет редирект на платёжную систему
-      // if (formData.payment_method === "card") {
-      //   window.location.href = resp.data.payment_url;
-      // }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -239,52 +264,104 @@ export default function Checkout() {
   };
 
   return (
-    <div className="checkout">
-      <div className="checkout__container">
-        <div className="checkout__header">
-          <Link to="/cart" className="checkout__back">
+    <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="mb-6">
+          <Link
+            to="/cart"
+            className="inline-flex items-center gap-2 text-sm no-underline mb-4 transition-colors duration-200 hover:text-[var(--primary)]"
+            style={{ color: 'var(--muted)' }}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
             Вернуться в корзину
           </Link>
-          <h1 className="checkout__title">Оформление заказа</h1>
+          <h1 className="text-[32px] md:text-[26px] font-bold m-0" style={{ color: 'var(--text)' }}>
+            Оформление заказа
+          </h1>
         </div>
 
         {/* Степпер */}
-        <div className="checkout__steps">
-          <div className={`checkout__step ${step >= 1 ? "checkout__step--active" : ""} ${step > 1 ? "checkout__step--completed" : ""}`}>
-            <span className="checkout__step-num">1</span>
-            <span className="checkout__step-label">Контакты</span>
+        <div
+          className="flex items-center justify-center mb-8 p-5 md:p-4 md:overflow-x-auto rounded-xl border"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+        >
+          <div className={`flex items-center gap-2.5 transition-opacity duration-200 ${step >= 1 ? 'opacity-100' : 'opacity-50'}`}>
+            <span
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold border-2 transition-all duration-200 ${
+                step > 1
+                  ? 'bg-green-500 border-green-500 text-white'
+                  : step >= 1
+                  ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
+                  : 'bg-[var(--bg)] border-[var(--border)]'
+              }`}
+              style={step < 1 ? { color: 'var(--muted)' } : {}}
+            >
+              1
+            </span>
+            <span className="text-sm font-medium md:hidden" style={{ color: 'var(--text)' }}>Контакты</span>
           </div>
-          <div className="checkout__step-line"></div>
-          <div className={`checkout__step ${step >= 2 ? "checkout__step--active" : ""} ${step > 2 ? "checkout__step--completed" : ""}`}>
-            <span className="checkout__step-num">2</span>
-            <span className="checkout__step-label">Доставка</span>
+          <div className="w-15 md:w-10 h-0.5 mx-4 md:mx-2" style={{ background: 'var(--border)' }}></div>
+          <div className={`flex items-center gap-2.5 transition-opacity duration-200 ${step >= 2 ? 'opacity-100' : 'opacity-50'}`}>
+            <span
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold border-2 transition-all duration-200 ${
+                step > 2
+                  ? 'bg-green-500 border-green-500 text-white'
+                  : step >= 2
+                  ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
+                  : 'bg-[var(--bg)] border-[var(--border)]'
+              }`}
+              style={step < 2 ? { color: 'var(--muted)' } : {}}
+            >
+              2
+            </span>
+            <span className="text-sm font-medium md:hidden" style={{ color: 'var(--text)' }}>Доставка</span>
           </div>
-          <div className="checkout__step-line"></div>
-          <div className={`checkout__step ${step >= 3 ? "checkout__step--active" : ""}`}>
-            <span className="checkout__step-num">3</span>
-            <span className="checkout__step-label">Оплата</span>
+          <div className="w-15 md:w-10 h-0.5 mx-4 md:mx-2" style={{ background: 'var(--border)' }}></div>
+          <div className={`flex items-center gap-2.5 transition-opacity duration-200 ${step >= 3 ? 'opacity-100' : 'opacity-50'}`}>
+            <span
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold border-2 transition-all duration-200 ${
+                step >= 3
+                  ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
+                  : 'bg-[var(--bg)] border-[var(--border)]'
+              }`}
+              style={step < 3 ? { color: 'var(--muted)' } : {}}
+            >
+              3
+            </span>
+            <span className="text-sm font-medium md:hidden" style={{ color: 'var(--text)' }}>Оплата</span>
           </div>
         </div>
 
-        {error && <div className="checkout__error">{error}</div>}
+        {error && (
+          <div className="py-3.5 px-4.5 mb-6 bg-red-50 border border-red-200 rounded-[10px] text-red-600 text-sm">
+            {error}
+          </div>
+        )}
 
-        <form className="checkout__content" onSubmit={handleSubmit}>
-          <div className="checkout__main">
+        <form className="grid grid-cols-[1fr_380px] lg:grid-cols-2 gap-8 items-start" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-6 lg:order-2">
             {/* Шаг 1: Контактные данные */}
             {step === 1 && (
-              <div className="checkout__section">
-                <h2 className="checkout__section-title">Контактные данные</h2>
+              <div
+                className="rounded-2xl p-6 sm:p-5 border"
+                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+              >
+                <h2 className="text-xl font-bold m-0 mb-5" style={{ color: 'var(--text)' }}>
+                  Контактные данные
+                </h2>
 
-                <div className="checkout__field">
-                  <label className="checkout__label">Email *</label>
+                <div className="mb-4">
+                  <label className="block text-[13px] font-medium mb-1.5" style={{ color: 'var(--text)' }}>
+                    Email *
+                  </label>
                   <input
                     type="email"
                     name="email"
-                    className="checkout__input"
+                    className="w-full py-3 px-3.5 text-[15px] rounded-[10px] border transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="user@mail.ru"
@@ -292,12 +369,15 @@ export default function Checkout() {
                   />
                 </div>
 
-                <div className="checkout__field">
-                  <label className="checkout__label">Телефон *</label>
+                <div className="mb-4">
+                  <label className="block text-[13px] font-medium mb-1.5" style={{ color: 'var(--text)' }}>
+                    Телефон *
+                  </label>
                   <input
                     type="tel"
                     name="phone"
-                    className="checkout__input"
+                    className="w-full py-3 px-3.5 text-[15px] rounded-[10px] border transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="+7 (999) 123-45-67"
@@ -305,12 +385,15 @@ export default function Checkout() {
                   />
                 </div>
 
-                <div className="checkout__field">
-                  <label className="checkout__label">ФИО получателя *</label>
+                <div className="mb-4">
+                  <label className="block text-[13px] font-medium mb-1.5" style={{ color: 'var(--text)' }}>
+                    ФИО получателя *
+                  </label>
                   <input
                     type="text"
                     name="shipping_name"
-                    className="checkout__input"
+                    className="w-full py-3 px-3.5 text-[15px] rounded-[10px] border transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                     value={formData.shipping_name}
                     onChange={handleChange}
                     placeholder="Иванов Иван Иванович"
@@ -319,8 +402,8 @@ export default function Checkout() {
                 </div>
 
                 {!isAuthenticated && (
-                  <div className="checkout__auth-hint">
-                    <Link to="/login">Войдите</Link> или <Link to="/register">зарегистрируйтесь</Link>,
+                  <div className="mt-4 py-3 px-4 bg-sky-50 border border-sky-200 rounded-[10px] text-sm text-sky-700">
+                    <Link to="/login" className="text-[var(--primary)] font-medium">Войдите</Link> или <Link to="/register" className="text-[var(--primary)] font-medium">зарегистрируйтесь</Link>,
                     чтобы отслеживать заказы в личном кабинете
                   </div>
                 )}
@@ -329,24 +412,45 @@ export default function Checkout() {
 
             {/* Шаг 2: Доставка */}
             {step === 2 && (
-              <div className="checkout__section">
-                <h2 className="checkout__section-title">Способ доставки</h2>
+              <div
+                className="rounded-2xl p-6 sm:p-5 border"
+                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+              >
+                <h2 className="text-xl font-bold m-0 mb-5" style={{ color: 'var(--text)' }}>
+                  Способ доставки
+                </h2>
 
-                <div className="checkout__options">
+                <div className="flex flex-col gap-3">
                   {SHIPPING_METHODS.map((method) => (
-                    <label key={method.id} className={`checkout__option ${formData.shipping_method === method.id ? "checkout__option--selected" : ""}`}>
+                    <label
+                      key={method.id}
+                      className={`flex items-center gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-[var(--primary)] ${
+                        formData.shipping_method === method.id
+                          ? 'border-[var(--primary)] bg-blue-500/5'
+                          : ''
+                      }`}
+                      style={{
+                        background: formData.shipping_method === method.id ? 'rgba(37, 99, 235, 0.05)' : 'var(--bg)',
+                        borderColor: formData.shipping_method === method.id ? 'var(--primary)' : 'var(--border)',
+                      }}
+                    >
                       <input
                         type="radio"
                         name="shipping_method"
                         value={method.id}
                         checked={formData.shipping_method === method.id}
                         onChange={handleChange}
+                        className="w-5 h-5 accent-[var(--primary)]"
                       />
-                      <div className="checkout__option-content">
-                        <div className="checkout__option-name">{method.name}</div>
-                        <div className="checkout__option-desc">{method.description}</div>
+                      <div className="flex-1">
+                        <div className="text-[15px] font-semibold mb-1" style={{ color: 'var(--text)' }}>
+                          {method.name}
+                        </div>
+                        <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                          {method.description}
+                        </div>
                       </div>
-                      <div className="checkout__option-price">
+                      <div className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
                         {method.price === 0 ? "Бесплатно" : `${method.price} ₽`}
                       </div>
                     </label>
@@ -354,27 +458,35 @@ export default function Checkout() {
                 </div>
 
                 {formData.shipping_method !== "pickup" && (
-                  <div className="checkout__address">
-                    <h3 className="checkout__subtitle">Адрес доставки</h3>
+                  <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
+                    <h3 className="text-base font-semibold m-0 mb-4" style={{ color: 'var(--text)' }}>
+                      Адрес доставки
+                    </h3>
 
-                    <div className="checkout__field-row">
-                      <div className="checkout__field">
-                        <label className="checkout__label">Город *</label>
+                    <div className="grid grid-cols-2 md:grid-cols-1 gap-4 mb-4">
+                      <div>
+                        <label className="block text-[13px] font-medium mb-1.5" style={{ color: 'var(--text)' }}>
+                          Город *
+                        </label>
                         <input
                           type="text"
                           name="shipping_city"
-                          className="checkout__input"
+                          className="w-full py-3 px-3.5 text-[15px] rounded-[10px] border transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                          style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                           value={formData.shipping_city}
                           onChange={handleChange}
                           placeholder="Москва"
                         />
                       </div>
-                      <div className="checkout__field">
-                        <label className="checkout__label">Индекс</label>
+                      <div>
+                        <label className="block text-[13px] font-medium mb-1.5" style={{ color: 'var(--text)' }}>
+                          Индекс
+                        </label>
                         <input
                           type="text"
                           name="shipping_postal_code"
-                          className="checkout__input"
+                          className="w-full py-3 px-3.5 text-[15px] rounded-[10px] border transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                          style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                           value={formData.shipping_postal_code}
                           onChange={handleChange}
                           placeholder="123456"
@@ -382,12 +494,15 @@ export default function Checkout() {
                       </div>
                     </div>
 
-                    <div className="checkout__field">
-                      <label className="checkout__label">Адрес *</label>
+                    <div>
+                      <label className="block text-[13px] font-medium mb-1.5" style={{ color: 'var(--text)' }}>
+                        Адрес *
+                      </label>
                       <input
                         type="text"
                         name="shipping_address"
-                        className="checkout__input"
+                        className="w-full py-3 px-3.5 text-[15px] rounded-[10px] border transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                        style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                         value={formData.shipping_address}
                         onChange={handleChange}
                         placeholder="ул. Примерная, д. 1, кв. 1"
@@ -400,18 +515,34 @@ export default function Checkout() {
 
             {/* Шаг 3: Оплата */}
             {step === 3 && (
-              <div className="checkout__section">
-                <h2 className="checkout__section-title">Способ оплаты</h2>
+              <div
+                className="rounded-2xl p-6 sm:p-5 border"
+                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+              >
+                <h2 className="text-xl font-bold m-0 mb-5" style={{ color: 'var(--text)' }}>
+                  Способ оплаты
+                </h2>
 
-                <div className="checkout__options">
+                <div className="flex flex-col gap-3">
                   {PAYMENT_METHODS.map((method) => {
-                    // Наличные только для самовывоза и курьера
                     const disabled = method.id === "cash" && !["pickup", "courier"].includes(formData.shipping_method);
 
                     return (
                       <label
                         key={method.id}
-                        className={`checkout__option ${formData.payment_method === method.id ? "checkout__option--selected" : ""} ${disabled ? "checkout__option--disabled" : ""}`}
+                        className={`flex items-center gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                          disabled
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:border-[var(--primary)]'
+                        } ${
+                          formData.payment_method === method.id && !disabled
+                            ? 'border-[var(--primary)]'
+                            : ''
+                        }`}
+                        style={{
+                          background: formData.payment_method === method.id && !disabled ? 'rgba(37, 99, 235, 0.05)' : 'var(--bg)',
+                          borderColor: formData.payment_method === method.id && !disabled ? 'var(--primary)' : 'var(--border)',
+                        }}
                       >
                         <input
                           type="radio"
@@ -420,21 +551,29 @@ export default function Checkout() {
                           checked={formData.payment_method === method.id}
                           onChange={handleChange}
                           disabled={disabled}
+                          className="w-5 h-5 accent-[var(--primary)]"
                         />
-                        <div className="checkout__option-content">
-                          <div className="checkout__option-name">{method.name}</div>
-                          <div className="checkout__option-desc">{method.description}</div>
+                        <div className="flex-1">
+                          <div className="text-[15px] font-semibold mb-1" style={{ color: 'var(--text)' }}>
+                            {method.name}
+                          </div>
+                          <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                            {method.description}
+                          </div>
                         </div>
                       </label>
                     );
                   })}
                 </div>
 
-                <div className="checkout__field">
-                  <label className="checkout__label">Комментарий к заказу</label>
+                <div className="mt-4">
+                  <label className="block text-[13px] font-medium mb-1.5" style={{ color: 'var(--text)' }}>
+                    Комментарий к заказу
+                  </label>
                   <textarea
                     name="customer_note"
-                    className="checkout__textarea"
+                    className="w-full py-3 px-3.5 text-[15px] rounded-[10px] border resize-y min-h-20 transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                     value={formData.customer_note}
                     onChange={handleChange}
                     placeholder="Пожелания к заказу..."
@@ -445,20 +584,29 @@ export default function Checkout() {
             )}
 
             {/* Навигация */}
-            <div className="checkout__nav">
+            <div className="flex gap-3 justify-end md:flex-col">
               {step > 1 && (
-                <button type="button" className="checkout__btn" onClick={prevStep}>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center py-3.5 px-6 bg-transparent border border-[var(--border)] rounded-[10px] text-[15px] font-semibold cursor-pointer transition-all duration-200 hover:bg-[var(--bg)] md:w-full"
+                  style={{ color: 'var(--text)' }}
+                  onClick={prevStep}
+                >
                   Назад
                 </button>
               )}
               {step < 3 ? (
-                <button type="button" className="checkout__btn checkout__btn--primary" onClick={nextStep}>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center py-3.5 px-6 bg-[var(--primary)] border border-[var(--primary)] rounded-[10px] text-white text-[15px] font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 md:w-full"
+                  onClick={nextStep}
+                >
                   Продолжить
                 </button>
               ) : (
                 <button
                   type="submit"
-                  className="checkout__btn checkout__btn--primary checkout__btn--submit"
+                  className="inline-flex items-center justify-center py-4 px-8 bg-[var(--primary)] border border-[var(--primary)] rounded-[10px] text-white text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 disabled:opacity-60 disabled:cursor-not-allowed md:w-full"
                   disabled={loading}
                 >
                   {loading ? "Оформление..." : "Оформить заказ"}
@@ -468,28 +616,42 @@ export default function Checkout() {
           </div>
 
           {/* Сайдбар */}
-          <div className="checkout__sidebar">
-            <div className="checkout__summary">
-              <h3 className="checkout__summary-title">Ваш заказ</h3>
+          <div className="sticky top-6 lg:static lg:order-1">
+            <div
+              className="rounded-2xl p-6 sm:p-5 border"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <h3 className="text-lg font-bold m-0 mb-5" style={{ color: 'var(--text)' }}>
+                Ваш заказ
+              </h3>
 
-              <div className="checkout__items">
+              <div className="flex flex-col gap-3 max-h-70 lg:max-h-none overflow-y-auto mb-5 pb-5 border-b" style={{ borderColor: 'var(--border)' }}>
                 {items.map((item) => (
-                  <div key={item.key} className="checkout__item">
-                    <div className="checkout__item-image">
+                  <div key={item.key} className="flex items-center gap-3">
+                    <div
+                      className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden"
+                      style={{ background: 'var(--bg)' }}
+                    >
                       {item.image ? (
-                        <img src={item.image} alt={item.name} />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="checkout__item-noimage">📷</div>
+                        <div className="w-full h-full flex items-center justify-center text-xl">📷</div>
                       )}
-                      <span className="checkout__item-qty">{item.quantity}</span>
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center bg-[var(--primary)] rounded-full text-[11px] font-semibold text-white">
+                        {item.quantity}
+                      </span>
                     </div>
-                    <div className="checkout__item-info">
-                      <div className="checkout__item-name">{item.name}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate" style={{ color: 'var(--text)' }}>
+                        {item.name}
+                      </div>
                       {item.variantLabel && (
-                        <div className="checkout__item-variant">{item.variantLabel}</div>
+                        <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                          {item.variantLabel}
+                        </div>
                       )}
                     </div>
-                    <div className="checkout__item-price">
+                    <div className="text-sm font-semibold whitespace-nowrap" style={{ color: 'var(--text)' }}>
                       {(item.price * item.quantity).toLocaleString("ru-RU")} ₽
                     </div>
                   </div>
@@ -497,27 +659,33 @@ export default function Checkout() {
               </div>
 
               {/* Купон */}
-              <div className="checkout__coupon">
+              <div className="mb-5 pb-5 border-b" style={{ borderColor: 'var(--border)' }}>
                 {couponApplied ? (
-                  <div className="checkout__coupon-applied">
+                  <div className="flex items-center justify-between py-3 px-3.5 bg-green-50 border border-green-200 rounded-[10px] text-sm text-green-600">
                     <span>Купон <strong>{couponApplied.code}</strong> применён</span>
-                    <button type="button" className="checkout__coupon-remove" onClick={removeCoupon}>
+                    <button
+                      type="button"
+                      className="py-1 px-2 bg-transparent border-none text-red-600 text-[13px] cursor-pointer hover:underline"
+                      onClick={removeCoupon}
+                    >
                       Удалить
                     </button>
                   </div>
                 ) : (
-                  <div className="checkout__coupon-form">
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       name="coupon_code"
-                      className="checkout__input checkout__coupon-input"
+                      className="flex-1 py-2.5 px-3 text-sm rounded-[10px] border transition-all duration-200 focus:outline-none focus:border-[var(--primary)]"
+                      style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       value={formData.coupon_code}
                       onChange={handleChange}
                       placeholder="Промокод"
                     />
                     <button
                       type="button"
-                      className="checkout__btn checkout__coupon-btn"
+                      className="py-2.5 px-4 bg-transparent border border-[var(--border)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-all duration-200 hover:bg-[var(--bg)] disabled:opacity-60"
+                      style={{ color: 'var(--text)' }}
                       onClick={handleApplyCoupon}
                       disabled={couponLoading}
                     >
@@ -525,26 +693,37 @@ export default function Checkout() {
                     </button>
                   </div>
                 )}
-                {couponError && <div className="checkout__coupon-error">{couponError}</div>}
+                {couponError && (
+                  <div className="mt-2 text-[13px] text-red-600">{couponError}</div>
+                )}
               </div>
 
               {/* Итого */}
-              <div className="checkout__totals">
-                <div className="checkout__totals-row">
+              <div className="flex flex-col gap-2.5">
+                <div className="flex justify-between text-sm" style={{ color: 'var(--muted)' }}>
                   <span>Товары ({totalItems})</span>
-                  <span>{totalPrice.toLocaleString("ru-RU")} ₽</span>
+                  <span className="font-medium" style={{ color: 'var(--text)' }}>
+                    {totalPrice.toLocaleString("ru-RU")} ₽
+                  </span>
                 </div>
-                <div className="checkout__totals-row">
+                <div className="flex justify-between text-sm" style={{ color: 'var(--muted)' }}>
                   <span>Доставка</span>
-                  <span>{shippingCost === 0 ? "Бесплатно" : `${shippingCost} ₽`}</span>
+                  <span className="font-medium" style={{ color: 'var(--text)' }}>
+                    {shippingCost === 0 ? "Бесплатно" : `${shippingCost} ₽`}
+                  </span>
                 </div>
                 {discount > 0 && (
-                  <div className="checkout__totals-row checkout__totals-row--discount">
+                  <div className="flex justify-between text-sm" style={{ color: 'var(--muted)' }}>
                     <span>Скидка</span>
-                    <span>-{discount.toLocaleString("ru-RU")} ₽</span>
+                    <span className="font-medium text-green-600">
+                      -{discount.toLocaleString("ru-RU")} ₽
+                    </span>
                   </div>
                 )}
-                <div className="checkout__totals-total">
+                <div
+                  className="flex justify-between pt-3 mt-1 border-t text-lg font-bold"
+                  style={{ color: 'var(--text)', borderColor: 'var(--border)' }}
+                >
                   <span>Итого</span>
                   <span>{grandTotal.toLocaleString("ru-RU")} ₽</span>
                 </div>

@@ -18,6 +18,15 @@
     color: #1f2937 !important;
     min-width: 200px;
 }
+#changelist-actions select:not([class*=bg-none]):not([multiple]) {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 14px;
+    color: #1f2937 !important;
+    min-width: 200px;
+}
 
 #changelist-actions select[name="action"] option {
     background-color: white;

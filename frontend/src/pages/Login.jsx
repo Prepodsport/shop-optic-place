@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { api, setTokens } from "../api.js";
 import { Link, useNavigate } from "react-router-dom";
-import "./Auth.css";
 
 export default function Login() {
   const nav = useNavigate();
@@ -26,18 +25,26 @@ export default function Login() {
   }
 
   return (
-    <div className="auth">
-      <div className="auth__container">
-        <div className="auth__header">
-          <h1 className="auth__title">Вход</h1>
-        </div>
+    <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+      <div className="max-w-[1280px] mx-auto">
+        <h1
+          className="text-[32px] md:text-[26px] font-bold max-w-[640px] mx-auto mb-8 m-0"
+          style={{ color: 'var(--text)' }}
+        >
+          Вход
+        </h1>
 
-        <form className="auth__card" onSubmit={submit}>
-          <div className="auth__grid">
-            <label className="auth__field auth__field--full">
-              <span className="auth__label">Email</span>
+        <form
+          className="max-w-[640px] mx-auto rounded-2xl p-6 md:p-5 border"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          onSubmit={submit}
+        >
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-3.5">
+            <label className="flex flex-col gap-2 col-span-full">
+              <span className="text-[13px] font-semibold" style={{ color: 'var(--muted)' }}>Email</span>
               <input
-                className="auth__input"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 type="email"
                 placeholder="name@example.com"
                 value={email}
@@ -47,10 +54,11 @@ export default function Login() {
               />
             </label>
 
-            <label className="auth__field auth__field--full">
-              <span className="auth__label">Пароль</span>
+            <label className="flex flex-col gap-2 col-span-full">
+              <span className="text-[13px] font-semibold" style={{ color: 'var(--muted)' }}>Пароль</span>
               <input
-                className="auth__input"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 type="password"
                 placeholder="Введите пароль"
                 value={password}
@@ -60,22 +68,37 @@ export default function Login() {
               />
             </label>
 
-            <div className="auth__forgot">
-              <Link to="/forgot-password" className="auth__link">
+            <div className="-mt-1.5">
+              <Link to="/forgot-password" className="text-[var(--primary)] font-bold text-sm no-underline hover:underline">
                 Забыли пароль?
               </Link>
             </div>
           </div>
 
-          {err ? <div className="auth__status auth__status--error">{err}</div> : null}
+          {err && (
+            <div
+              className="mt-3 py-3 px-3.5 rounded-xl border text-sm leading-relaxed"
+              style={{
+                background: 'var(--bg)',
+                borderColor: 'rgba(239, 68, 68, 0.35)',
+                color: 'var(--text)',
+              }}
+            >
+              {err}
+            </div>
+          )}
 
-          <button className="auth__btn auth__btn--primary" type="submit" disabled={loading}>
+          <button
+            className="w-full mt-3.5 py-3.5 px-4.5 bg-[var(--primary)] border border-[var(--primary)] rounded-xl text-white text-[15px] font-bold cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 disabled:opacity-70 disabled:cursor-not-allowed"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Входим..." : "Войти"}
           </button>
 
-          <div className="auth__footer">
-            <span className="auth__muted">Нет аккаунта?</span>{" "}
-            <Link to="/register" className="auth__link">
+          <div className="mt-3.5 text-sm text-center" style={{ color: 'var(--muted)' }}>
+            <span>Нет аккаунта?</span>{" "}
+            <Link to="/register" className="text-[var(--primary)] font-bold no-underline hover:underline">
               Зарегистрироваться
             </Link>
           </div>

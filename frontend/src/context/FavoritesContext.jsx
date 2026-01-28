@@ -4,6 +4,17 @@ const FavoritesContext = createContext(null);
 
 const FAVORITES_STORAGE_KEY = "optic_favorites";
 
+function normalizeId(id) {
+  const n = typeof id === "string" ? Number(id) : id;
+  return Number.isFinite(n) ? n : null;
+}
+
+function normalizeList(list) {
+  if (!Array.isArray(list)) return [];
+  const cleaned = list.map(normalizeId).filter((v) => v !== null);
+  return Array.from(new Set(cleaned));
+}
+
 export function FavoritesProvider({ children }) {
   const [items, setItems] = useState([]);
 
@@ -12,7 +23,7 @@ export function FavoritesProvider({ children }) {
     const saved = localStorage.getItem(FAVORITES_STORAGE_KEY);
     if (saved) {
       try {
-        setItems(JSON.parse(saved));
+        setItems(normalizeList(JSON.parse(saved)));
       } catch (e) {
         console.error("Ошибка загрузки избранного:", e);
       }
@@ -27,12 +38,16 @@ export function FavoritesProvider({ children }) {
   // Синхронизация между вкладками
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === FAVORITES_STORAGE_KEY && e.newValue) {
-        try {
-          setItems(JSON.parse(e.newValue));
-        } catch (err) {
-          console.error("Ошибка синхронизации избранного:", err);
-        }
+      if (e.key !== FAVORITES_STORAGE_KEY) return;
+      if (!e.newValue) {
+        setItems([]);
+        return;
+      }
+
+      try {
+        setItems(normalizeList(JSON.parse(e.newValue)));
+      } catch (err) {
+        console.error("Ошибка синхронизации избранного:", err);
       }
     };
     window.addEventListener("storage", handleStorageChange);
@@ -40,27 +55,37 @@ export function FavoritesProvider({ children }) {
   }, []);
 
   const addToFavorites = useCallback((productId) => {
+    const id = normalizeId(productId);
+    if (id === null) return;
     setItems((prev) => {
-      if (prev.includes(productId)) return prev;
-      return [...prev, productId];
+      if (prev.includes(id)) return prev;
+      return [...prev, id];
     });
   }, []);
 
   const removeFromFavorites = useCallback((productId) => {
-    setItems((prev) => prev.filter((id) => id !== productId));
+    const id = normalizeId(productId);
+    if (id === null) return;
+    setItems((prev) => prev.filter((x) => x !== id));
   }, []);
 
   const toggleFavorite = useCallback((productId) => {
+    const id = normalizeId(productId);
+    if (id === null) return;
     setItems((prev) => {
-      if (prev.includes(productId)) {
-        return prev.filter((id) => id !== productId);
+      if (prev.includes(id)) {
+        return prev.filter((x) => x !== id);
       }
-      return [...prev, productId];
+      return [...prev, id];
     });
   }, []);
 
   const isFavorite = useCallback(
-    (productId) => items.includes(productId),
+    (productId) => {
+      const id = normalizeId(productId);
+      if (id === null) return false;
+      return items.includes(id);
+    },
     [items]
   );
 

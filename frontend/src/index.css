@@ -1,3 +1,22 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+/* Регистрация цветов для Tailwind v4 */
+@theme {
+  --color-bg: var(--bg);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+}
+
+/* CSS переменные для темизации */
 :root {
   --bg: #ffffff;
   --bg-secondary: #f9fafb;
@@ -6,6 +25,10 @@
   --card: #f3f4f6;
   --border: #e5e7eb;
   --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
 }
 
 :root[data-theme="dark"] {
@@ -16,367 +39,200 @@
   --card: #111827;
   --border: #1f2937;
   --primary: #60a5fa;
+  --primary-hover: #3b82f6;
+  --danger: #f87171;
+  --success: #4ade80;
+  --warning: #fbbf24;
 }
 
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
-
-a { color: var(--primary); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.navbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  position: sticky;
-  top: 0;
-}
-
-.nav-links { display: flex; gap: 12px; align-items: center; }
-.btn {
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-.btn.primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: white;
-}
-.card {
-  border: 1px solid var(--border);
-  background: var(--card);
-  border-radius: 14px;
-  padding: 12px;
-}
-.grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-}
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-}
-.row { display: grid; gap: 10px; }
-.muted { color: var(--muted); }
-/* Стили для страницы товара */
-.product-page {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.main-image-container {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.main-image-container img {
-  width: 100%;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.gallery-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.gallery-thumb {
-  width: 80px;
-  height: 80px;
-  cursor: pointer;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  overflow: hidden;
-  transition: all 0.2s;
-}
-
-.gallery-thumb:hover {
-  border-color: var(--primary);
-  transform: scale(1.05);
-}
-
-.gallery-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.gallery-thumb.active {
-  border-color: var(--primary);
-}
-
-.product-info-section {
-  margin-bottom: 25px;
-}
-
-.price-container {
-  font-size: 28px;
-  font-weight: bold;
-  color: var(--text);
-}
-
-.old-price {
-  font-size: 18px;
-  color: var(--muted);
-  text-decoration: line-through;
-  margin-left: 10px;
-}
-
-.product-actions {
-  display: flex;
-  gap: 15px;
-  margin: 25px 0;
-}
-
-.quantity-selector {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.quantity-btn {
-  background: var(--card);
-  border: none;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  font-size: 18px;
-  color: var(--text);
-}
-
-.quantity-input {
-  width: 60px;
-  height: 40px;
-  border: none;
-  text-align: center;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 16px;
-}
-
-.product-description {
-  white-space: pre-line;
-  line-height: 1.6;
-  color: var(--text);
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-  .product-page {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-}
-/* Каталог товаров */
-.catalog-filters {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 30px;
-  border: 1px solid var(--border);
-}
-
-.filter-group {
-  margin-bottom: 20px;
-}
-
-.product-image {
-  position: relative;
-  width: 100%;
-  padding-top: 75%; /* 4:3 соотношение */
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.product-image img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 15px;
-  transition: transform 0.3s ease;
-}
-
-.product-card:hover .product-image img {
-  transform: scale(1.05);
-}
-
-.discount-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: bold;
-  z-index: 1;
-}
-
-.product-info {
-  padding: 20px;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.product-category {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.product-name {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  line-height: 1.4;
-  font-weight: 600;
-  color: var(--text);
-  flex-grow: 1;
-}
-
-.product-price {
-  margin-top: auto;
-}
-
-.current-price {
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--text);
-}
-
-.old-price {
-  font-size: 14px;
-  color: var(--muted);
-  text-decoration: line-through;
-  margin-right: 8px;
-}
-
-.product-actions {
-  padding: 0 20px 20px 20px;
-  margin-top: 15px;
-}
-
-.catalog-stats {
-  margin-top: 30px;
-  padding: 20px;
-  background: var(--card);
-  border-radius: 12px;
-  text-align: center;
-  border: 1px solid var(--border);
-}
-
-/* Адаптивность для каталога */
-@media (max-width: 768px) {
-  .catalog-filters {
-    padding: 16px;
+@layer base {
+  * {
+    box-sizing: border-box;
   }
 
-  .product-card {
-    margin-bottom: 20px;
+  body {
+    @apply m-0 font-sans antialiased;
+    background: var(--bg);
+    color: var(--text);
   }
 
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Скрываем скроллбар но оставляем функциональность */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
-@media (max-width: 480px) {
-  .grid {
-    grid-template-columns: 1fr;
+@layer components {
+  /* Контейнер */
+  .container {
+    @apply max-w-[1280px] mx-auto px-4;
   }
 
-  .product-name {
-    font-size: 15px;
+  /* Базовые кнопки */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-[10px] font-medium
+           cursor-pointer transition-colors duration-200;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
   }
 
-  .current-price {
-    font-size: 18px;
+  .btn:hover {
+    background: var(--border);
+  }
+
+  .btn-primary {
+    @apply text-white border-transparent;
+    background: var(--primary);
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
+  }
+
+  .btn-danger {
+    @apply text-white border-transparent;
+    background: var(--danger);
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  /* Карточка */
+  .card {
+    @apply rounded-[14px] p-4;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+
+  /* Инпут */
+  .input {
+    @apply w-full px-3 py-2.5 rounded-[10px] text-base transition-colors duration-200;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .input:focus {
+    @apply outline-none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .input::placeholder {
+    color: var(--muted);
+  }
+
+  /* Сетка товаров */
+  .product-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  /* Текст */
+  .text-muted {
+    color: var(--muted);
+  }
+
+  .text-primary {
+    color: var(--primary);
   }
 }
-/* Стили для модального окна быстрого просмотра */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
 
-.modal-content {
-  background: var(--bg);
-  border-radius: 16px;
-  max-width: 800px;
-  width: 100%;
-  max-height: 90vh;
-  overflow: auto;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
+@layer utilities {
+  /* Анимации */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 
-.modal-close {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--text);
-  cursor: pointer;
-  z-index: 10;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-.modal-close:hover {
-  background-color: var(--card);
+  @keyframes slideDown {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .animate-spin {
+    animation: spin 0.8s linear infinite;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease;
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease forwards;
+  }
+
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
 }
 
 /* Затемнение при открытом модальном окне */

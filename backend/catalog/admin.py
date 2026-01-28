@@ -64,6 +64,16 @@ class ProductAdminActionForm(ActionForm):
             'title': 'Пометить товары флагом is_sale=True'
         })
     )
+    target_category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        label="Категория",
+        required=False,
+        empty_label="-- Выберите категорию --",
+        widget=forms.Select(attrs={
+            'class': 'text-gray-900 dark:text-white',
+            'style': 'min-width: 200px;'
+        })
+    )
 
     def clean(self):
         cleaned = super().clean()
@@ -527,6 +537,30 @@ class ProductAdmin(ModelAdmin):
             updated += 1
         messages.success(request, f"Скидка сброшена у товаров: {updated}")
 
+    # ---------- ACTION: перенос в категорию ----------
+    @admin.action(description='📁 Перенести в категорию (выберите в поле "Категория")')
+    def action_move_to_category(self, request, queryset):
+        """Переносит выбранные товары в указанную категорию"""
+        post = request.POST.copy()
+
+        # Нормализуем POST: берём ПЕРВОЕ НЕПУСТОЕ значение (из-за дублирования форм)
+        cat_vals = [str(v).strip() for v in post.getlist("target_category")]
+        cat_vals = [v for v in cat_vals if v != "" and v != "None"]
+
+        if not cat_vals:
+            messages.warning(request, 'Выберите категорию в поле "Категория" перед выполнением действия.')
+            return
+
+        try:
+            category_id = int(cat_vals[0])
+            target_category = Category.objects.get(pk=category_id)
+        except (ValueError, Category.DoesNotExist):
+            messages.error(request, "Выбранная категория не найдена.")
+            return
+
+        updated = queryset.update(category=target_category)
+        messages.success(request, f'✅ Перенесено товаров в категорию "{target_category.name}": {updated}')
+
     actions = (
         "action_mark_popular", "action_unmark_popular",
         "action_mark_bestseller", "action_unmark_bestseller",
@@ -534,6 +568,7 @@ class ProductAdmin(ModelAdmin):
         "action_mark_sale", "action_unmark_sale",
         "action_mark_active", "action_unmark_active",
         "action_apply_discount", "action_clear_discount",
+        "action_move_to_category",
     )
 
     def get_urls(self):

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import "./Contacts.css";
 
 function splitParagraphs(text) {
   const raw = (text || "").trim();
@@ -79,32 +78,52 @@ export default function Contacts() {
   };
 
   return (
-    <div className="contacts">
-      <div className="contacts__container">
-        <h1 className="contacts__title">{page?.title || "Контакты"}</h1>
+    <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+      <div className="max-w-[1280px] mx-auto">
+        <h1
+          className="text-[32px] md:text-[26px] font-bold m-0 mb-10"
+          style={{ color: 'var(--text)' }}
+        >
+          {page?.title || "Контакты"}
+        </h1>
 
         {loading ? (
-          <div className="contacts__loading">Загрузка...</div>
+          <div className="text-[15px]" style={{ color: 'var(--muted)' }}>Загрузка...</div>
         ) : error ? (
-          <div className="contacts__error">{error}</div>
+          <div className="text-[15px]" style={{ color: 'var(--muted)' }}>{error}</div>
         ) : !page ? null : (
-          <div className="contacts__grid">
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-12 md:gap-8 items-start">
             {/* Левая колонка — CMS */}
-            <div className="contacts__info">
+            <div className="flex flex-col gap-6">
               {(page.sections || []).map((s, idx) => {
                 const paragraphs = splitParagraphs(s.body);
                 const bullets = Array.isArray(s.bullets) ? s.bullets : [];
 
                 return (
-                  <section className="contacts__section" key={`${s.order ?? idx}-${idx}`}>
-                    {s.heading ? <h2>{s.heading}</h2> : null}
+                  <section
+                    key={`${s.order ?? idx}-${idx}`}
+                    className="rounded-2xl p-5 md:p-5.5 border"
+                    style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+                  >
+                    {s.heading && (
+                      <h2
+                        className="text-[18px] font-bold m-0 mb-3"
+                        style={{ color: 'var(--text)' }}
+                      >
+                        {s.heading}
+                      </h2>
+                    )}
 
                     {paragraphs.map((p, i) => {
                       const parsed = parseSpecialLine(p);
 
                       if (parsed.type === "note") {
                         return (
-                          <p key={i} className="contacts__note">
+                          <p
+                            key={i}
+                            className="text-[14px] m-0 mb-2"
+                            style={{ color: 'var(--muted)' }}
+                          >
                             {parsed.text}
                           </p>
                         );
@@ -112,27 +131,40 @@ export default function Contacts() {
 
                       if (parsed.type === "link") {
                         return (
-                          <a key={i} href={parsed.href} className="contacts__link">
+                          <a
+                            key={i}
+                            href={parsed.href}
+                            className="inline-block text-[18px] font-semibold no-underline m-0 mb-2 hover:underline"
+                            style={{ color: 'var(--primary)' }}
+                          >
                             {parsed.label}
                           </a>
                         );
                       }
 
                       return (
-                        <p key={i} className="contacts__text">
+                        <p
+                          key={i}
+                          className="text-[16px] leading-relaxed m-0 mb-2"
+                          style={{ color: 'var(--text)' }}
+                        >
                           {parsed.text || p}
                         </p>
                       );
                     })}
 
-                    {bullets.length ? (
-                      <ul className="contacts__list">
+                    {bullets.length > 0 && (
+                      <ul className="mt-2 mb-0 pl-4.5">
                         {bullets.map((b, i) => {
                           const parsed = parseSpecialLine(b);
 
                           if (parsed.type === "note") {
                             return (
-                              <li key={i} className="contacts__note">
+                              <li
+                                key={i}
+                                className="text-[14px] mb-2"
+                                style={{ color: 'var(--muted)' }}
+                              >
                                 {parsed.text}
                               </li>
                             );
@@ -140,66 +172,117 @@ export default function Contacts() {
 
                           if (parsed.type === "link") {
                             return (
-                              <li key={i}>
-                                <a href={parsed.href} className="contacts__link">
+                              <li key={i} className="mb-2">
+                                <a
+                                  href={parsed.href}
+                                  className="font-semibold no-underline hover:underline"
+                                  style={{ color: 'var(--primary)' }}
+                                >
                                   {parsed.label}
                                 </a>
                               </li>
                             );
                           }
 
-                          return <li key={i}>{parsed.text || b}</li>;
+                          return (
+                            <li
+                              key={i}
+                              className="text-[16px] mb-2"
+                              style={{ color: 'var(--text)' }}
+                            >
+                              {parsed.text || b}
+                            </li>
+                          );
                         })}
                       </ul>
-                    ) : null}
+                    )}
                   </section>
                 );
               })}
             </div>
 
             {/* Правая колонка — форма */}
-            <div className="contacts__form-wrap">
-              <h2>Напишите нам</h2>
+            <div
+              className="rounded-2xl p-8 md:p-6 border"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <h2
+                className="text-[20px] font-bold m-0 mb-6"
+                style={{ color: 'var(--text)' }}
+              >
+                Напишите нам
+              </h2>
 
-              <form className="contacts__form" onSubmit={onSubmit}>
-                <div className="contacts__field">
-                  <label>Ваше имя</label>
+              <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+                <div className="flex flex-col gap-2">
+                  <label
+                    className="text-[14px] font-semibold"
+                    style={{ color: 'var(--text)' }}
+                  >
+                    Ваше имя
+                  </label>
                   <input
                     type="text"
                     placeholder="Иван Иванов"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    className="py-3 px-4 rounded-xl border text-[15px] transition-all duration-200 resize-y focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   />
                 </div>
 
-                <div className="contacts__field">
-                  <label>Email</label>
+                <div className="flex flex-col gap-2">
+                  <label
+                    className="text-[14px] font-semibold"
+                    style={{ color: 'var(--text)' }}
+                  >
+                    Email
+                  </label>
                   <input
                     type="email"
                     placeholder="ivan@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="py-3 px-4 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   />
                 </div>
 
-                <div className="contacts__field">
-                  <label>Сообщение</label>
+                <div className="flex flex-col gap-2">
+                  <label
+                    className="text-[14px] font-semibold"
+                    style={{ color: 'var(--text)' }}
+                  >
+                    Сообщение
+                  </label>
                   <textarea
                     rows="4"
                     placeholder="Ваш вопрос или сообщение..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     required
+                    className="py-3 px-4 rounded-xl border text-[15px] transition-all duration-200 resize-y font-[inherit] focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   />
                 </div>
 
-                <button type="submit" className="contacts__submit">
+                <button
+                  type="submit"
+                  className="py-3.5 px-6 bg-[var(--primary)] text-white rounded-xl text-[16px] font-bold cursor-pointer border-none transition-colors duration-200 hover:bg-blue-700"
+                >
                   Отправить
                 </button>
 
-                {formStatus ? <div className="contacts__form-status">{formStatus}</div> : null}
+                {formStatus && (
+                  <div
+                    className="mt-0.5 text-[14px] leading-relaxed"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    {formStatus}
+                  </div>
+                )}
               </form>
             </div>
           </div>

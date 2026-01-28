@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { api } from "../api";
 import ProductGrid from "../components/product/ProductGrid";
 import QuickViewModal from "../components/ui/QuickViewModal.jsx";
-import "./Sale.css";
 
 export default function Sale() {
   const [products, setProducts] = useState([]);
@@ -34,11 +33,15 @@ export default function Sale() {
   };
 
   return (
-    <div className="sale">
-      <div className="sale__container">
-        <div className="sale__header">
-          <h1 className="sale__title">Распродажа</h1>
-          <p className="sale__subtitle">Товары со скидкой — успейте купить по выгодной цене!</p>
+    <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+      <div className="max-w-[1280px] mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-[32px] md:text-[26px] font-bold m-0 mb-3 text-red-500">
+            Распродажа
+          </h1>
+          <p className="text-lg md:text-base m-0" style={{ color: 'var(--muted)' }}>
+            Товары со скидкой — успейте купить по выгодной цене!
+          </p>
         </div>
 
         <ProductGrid
@@ -50,9 +53,16 @@ export default function Sale() {
         />
 
         {!loading && products.length === 0 && (
-          <div className="sale__empty">
-            <h3>Сейчас нет товаров на распродаже</h3>
-            <p>Следите за обновлениями — скоро появятся новые предложения!</p>
+          <div
+            className="text-center py-15 px-5 rounded-2xl border"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            <h3 className="m-0 mb-3 text-xl" style={{ color: 'var(--text)' }}>
+              Сейчас нет товаров на распродаже
+            </h3>
+            <p className="m-0" style={{ color: 'var(--muted)' }}>
+              Следите за обновлениями — скоро появятся новые предложения!
+            </p>
           </div>
         )}
       </div>

@@ -46,6 +46,17 @@ def make_slug(text):
     return slugify(text_latin)
 
 
+def clean_wc_slug(slug):
+    """Убирает префикс pa_ из WooCommerce slug атрибутов"""
+    if slug and slug.startswith('pa_'):
+        return slug[3:]  # Убираем 'pa_'
+    return slug
+
+
+# Список названий атрибута "Бренд" в разных вариантах
+BRAND_ATTRIBUTE_NAMES = {'бренд', 'brand', 'brend', 'pa_brend'}
+
+
 def ensure_unique_slug(slug, model_class, existing_obj=None):
     """Обеспечивает уникальность slug для модели"""
     base_slug = slug
@@ -346,7 +357,15 @@ class Command(BaseCommand):
         for idx, wc_attr in enumerate(wc_attributes, 1):
             wc_attr_id = wc_attr['id']
             name = wc_attr['name']
-            slug = wc_attr.get('slug') or make_slug(name)
+            wc_slug = wc_attr.get('slug', '')
+
+            # Пропускаем атрибут "Бренд" - он обрабатывается отдельно
+            if name.lower().strip() in BRAND_ATTRIBUTE_NAMES or wc_slug.lower().strip() in BRAND_ATTRIBUTE_NAMES:
+                self.stdout.write(f'  [{idx}/{total}] {name}: пропущен (это атрибут бренда)')
+                continue
+
+            # Убираем pa_ из slug
+            slug = clean_wc_slug(wc_slug) if wc_slug else make_slug(name)
 
             # Ищем существующий атрибут
             attribute = self.attributes_cache.get(name.lower())
@@ -663,34 +682,55 @@ class Command(BaseCommand):
         return category
 
     def _get_product_brand(self, wc_product):
-        """Определяет бренд товара (из тегов)"""
-        tags = wc_product.get('tags', [])
-        if not tags:
-            return None
+        """Определяет бренд товара (из тегов или атрибута 'Бренд')"""
+        brand_name = None
 
-        tag = tags[0]
-        tag_name = tag.get('name', '')
+        # 1. Сначала ищем в атрибутах (атрибут "Бренд" / pa_brend)
+        wc_attributes = wc_product.get('attributes', [])
+        for wc_attr in wc_attributes:
+            attr_name = wc_attr.get('name', '').lower().strip()
+            attr_slug = wc_attr.get('slug', '').lower().strip()
 
-        if not tag_name:
+            # Проверяем, является ли это атрибутом бренда
+            if attr_name in BRAND_ATTRIBUTE_NAMES or attr_slug in BRAND_ATTRIBUTE_NAMES:
+                options = wc_attr.get('options', [])
+                if options:
+                    brand_name = options[0].strip()
+                    break
+
+        # 2. Если не нашли в атрибутах, ищем в тегах
+        if not brand_name:
+            tags = wc_product.get('tags', [])
+            if tags:
+                tag = tags[0]
+                brand_name = tag.get('name', '').strip()
+
+        # 3. Если не нашли в тегах, ищем в brands (если WC поддерживает)
+        if not brand_name:
+            brands = wc_product.get('brands', [])
+            if brands:
+                brand_name = brands[0].get('name', '').strip()
+
+        if not brand_name:
             return None
 
         # Ищем в кэше
-        if tag_name.lower() in self.brands_cache:
-            return self.brands_cache[tag_name.lower()]
+        if brand_name.lower() in self.brands_cache:
+            return self.brands_cache[brand_name.lower()]
 
         # Ищем в БД
-        brand = Brand.objects.filter(name__iexact=tag_name).first()
+        brand = Brand.objects.filter(name__iexact=brand_name).first()
         if brand:
-            self.brands_cache[tag_name.lower()] = brand
+            self.brands_cache[brand_name.lower()] = brand
             return brand
 
         # Создаём новый бренд
-        slug = make_slug(tag_name)
+        slug = make_slug(brand_name)
         brand = Brand.objects.create(
-            name=tag_name,
+            name=brand_name,
             slug=ensure_unique_slug(slug, Brand),
         )
-        self.brands_cache[tag_name.lower()] = brand
+        self.brands_cache[brand_name.lower()] = brand
         self.stats['brands_created'] += 1
         return brand
 
@@ -707,10 +747,15 @@ class Command(BaseCommand):
         for wc_attr in wc_attributes:
             attr_id = wc_attr.get('id', 0)
             attr_name = wc_attr.get('name', '')
+            attr_slug = wc_attr.get('slug', '')
             options = wc_attr.get('options', [])
             variation = wc_attr.get('variation', False)
 
             if not attr_name or not options:
+                continue
+
+            # Пропускаем атрибут "Бренд" - он обрабатывается отдельно через _get_product_brand
+            if attr_name.lower().strip() in BRAND_ATTRIBUTE_NAMES or attr_slug.lower().strip() in BRAND_ATTRIBUTE_NAMES:
                 continue
 
             attribute = self._get_or_create_attribute(attr_id, attr_name)
@@ -732,7 +777,7 @@ class Command(BaseCommand):
                     attribute_value=attr_value
                 )
 
-    def _get_or_create_attribute(self, wc_attr_id, name):
+    def _get_or_create_attribute(self, wc_attr_id, name, wc_slug=None):
         """Находит или создаёт атрибут"""
         if wc_attr_id and wc_attr_id in self.attributes_cache:
             return self.attributes_cache[wc_attr_id]
@@ -747,7 +792,15 @@ class Command(BaseCommand):
                 self.attributes_cache[wc_attr_id] = attribute
             return attribute
 
-        slug = make_slug(name)
+        # Создаём slug, убирая префикс pa_ если он есть
+        if wc_slug:
+            slug = clean_wc_slug(wc_slug)
+        else:
+            slug = make_slug(name)
+
+        # Убираем pa_ из slug если он всё ещё есть
+        slug = clean_wc_slug(slug)
+
         attribute = Attribute.objects.create(
             name=name,
             slug=ensure_unique_slug(slug, Attribute),

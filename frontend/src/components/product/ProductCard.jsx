@@ -4,7 +4,6 @@ import { useCart } from "../../context/CartContext.jsx";
 import { useFavorites } from "../../context/FavoritesContext.jsx";
 import Badge, { calcDiscountPercent } from "../ui/Badge.jsx";
 import StarRating from "../ui/StarRating.jsx";
-import "./ProductCard.css";
 
 export default function ProductCard({ product, onQuickView }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -54,25 +53,35 @@ export default function ProductCard({ product, onQuickView }) {
 
   return (
     <article
-      className={`product-card ${isHovered ? "product-card--hovered" : ""}`}
+      className={`relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 ${
+        isHovered ? "-translate-y-2 shadow-[0_16px_40px_rgba(0,0,0,0.12)]" : ""
+      }`}
+      style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Изображение */}
-      <div className="product-card__image-wrap">
+      <div className="relative pt-[100%] overflow-hidden" style={{ background: 'var(--bg)' }}>
         {product.main_image_url ? (
           <img
             src={product.main_image_url}
             alt={product.name}
-            className="product-card__image"
+            className={`absolute top-0 left-0 w-full h-full object-contain p-4 transition-transform duration-400 ${
+              isHovered ? "scale-[1.08]" : ""
+            }`}
             loading="lazy"
           />
         ) : (
-          <div className="product-card__no-image">Нет фото</div>
+          <div
+            className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-sm"
+            style={{ color: 'var(--muted)' }}
+          >
+            Нет фото
+          </div>
         )}
 
         {/* Бейджи */}
-        <div className="product-card__badges">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
           {discountPercent > 0 && (
             <Badge type="discount">Скидка -{discountPercent}%</Badge>
           )}
@@ -85,9 +94,18 @@ export default function ProductCard({ product, onQuickView }) {
         </div>
 
         {/* Оверлей с кнопками при наведении */}
-        <div className="product-card__overlay">
+        <div
+          className={`absolute top-3 right-3 flex flex-col gap-2 z-20 transition-all duration-300 ${
+            isHovered ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2.5 sm:opacity-100 sm:translate-x-0"
+          }`}
+        >
           <button
-            className="product-card__icon-btn"
+            className="w-10 h-10 sm:w-9 sm:h-9 rounded-[10px] flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-white"
+            style={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border)',
+              color: 'var(--text)',
+            }}
             onClick={handleQuickView}
             title="Быстрый просмотр"
             type="button"
@@ -99,7 +117,16 @@ export default function ProductCard({ product, onQuickView }) {
           </button>
 
           <button
-            className={`product-card__icon-btn ${inFavorites ? "product-card__icon-btn--active" : ""}`}
+            className={`w-10 h-10 sm:w-9 sm:h-9 rounded-[10px] flex items-center justify-center cursor-pointer transition-all duration-200 ${
+              inFavorites
+                ? "text-red-500 hover:bg-red-500 hover:border-red-500 hover:text-white"
+                : "hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-white"
+            }`}
+            style={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border)',
+              color: inFavorites ? '#ef4444' : 'var(--text)',
+            }}
             onClick={handleToggleFavorite}
             title={inFavorites ? "Убрать из избранного" : "В избранное"}
             type="button"
@@ -112,13 +139,13 @@ export default function ProductCard({ product, onQuickView }) {
       </div>
 
       {/* Информация */}
-      <div className="product-card__info">
+      <div className="p-4 flex-1 flex flex-col relative z-20">
         {/* Категория и бренд */}
-        <div className="product-card__meta">
+        <div className="text-xs uppercase tracking-wide mb-2 relative z-20" style={{ color: 'var(--muted)' }}>
           {product.category && (
             <Link
               to={`/catalog?category=${product.category.slug}`}
-              className="product-card__category-link"
+              className="relative z-20 text-blue-600 no-underline font-medium py-0.5 px-1 rounded transition-all duration-200 hover:text-white hover:bg-blue-600"
               onClick={(e) => e.stopPropagation()}
             >
               {product.category.name}
@@ -130,7 +157,7 @@ export default function ProductCard({ product, onQuickView }) {
               <span> • </span>
               <Link
                 to={`/catalog?brand=${product.brand.slug}`}
-                className="product-card__brand-link"
+                className="relative z-20 text-amber-500 no-underline font-medium py-0.5 px-1.5 rounded transition-all duration-200 hover:text-white hover:bg-amber-500"
                 onClick={(e) => e.stopPropagation()}
               >
                 {product.brand.name}
@@ -140,11 +167,16 @@ export default function ProductCard({ product, onQuickView }) {
         </div>
 
         {/* Название */}
-        <h3 className="product-card__title">{product.name}</h3>
+        <h3
+          className="text-[15px] sm:text-sm font-medium leading-snug m-0 mb-2 flex-1 line-clamp-2"
+          style={{ color: 'var(--text)' }}
+        >
+          {product.name}
+        </h3>
 
         {/* Рейтинг */}
         {product.average_rating > 0 && (
-          <div className="product-card__rating">
+          <div className="mb-2">
             <StarRating
               rating={product.average_rating}
               count={product.reviews_count}
@@ -155,12 +187,12 @@ export default function ProductCard({ product, onQuickView }) {
         )}
 
         {/* Цена */}
-        <div className="product-card__price-wrap">
-          <span className="product-card__price">
+        <div className="flex items-baseline gap-2.5 mt-auto">
+          <span className="text-xl sm:text-lg font-bold" style={{ color: 'var(--text)' }}>
             {parseFloat(product.price).toLocaleString("ru-RU")} ₽
           </span>
           {product.old_price && (
-            <span className="product-card__old-price">
+            <span className="text-sm line-through" style={{ color: 'var(--muted)' }}>
               {parseFloat(product.old_price).toLocaleString("ru-RU")} ₽
             </span>
           )}
@@ -168,11 +200,22 @@ export default function ProductCard({ product, onQuickView }) {
       </div>
 
       {/* Кнопка в корзину / выбрать параметры */}
-      <div className="product-card__actions">
+      <div className="px-4 pb-4 relative z-20">
         <button
-          className={`product-card__cart-btn ${inCart ? "product-card__cart-btn--in-cart" : ""} ${
-            hasVariations ? "product-card__cart-btn--variants" : ""
+          className={`w-full py-3 px-4 rounded-[10px] text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 active:scale-[0.98] ${
+            inCart
+              ? "bg-green-500 text-white hover:bg-green-600"
+              : hasVariations
+                ? "hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)]"
+                : "bg-[var(--primary)] text-white border-transparent hover:bg-blue-700"
           }`}
+          style={hasVariations && !inCart ? {
+            background: 'var(--bg-secondary)',
+            color: 'var(--text)',
+            border: '1px solid var(--border)',
+          } : {
+            border: 'none',
+          }}
           onClick={handleAddToCart}
           type="button"
         >
@@ -204,10 +247,10 @@ export default function ProductCard({ product, onQuickView }) {
         </button>
       </div>
 
-      {/* Cover-link: делает кликабельной всю карточку, но НЕ нарушает HTML и не вложен в другие ссылки */}
+      {/* Cover-link: делает кликабельной всю карточку */}
       <Link
         to={productUrl}
-        className="product-card__cover-link"
+        className="absolute inset-0 z-10 block no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
         aria-label={`Открыть товар: ${product.name}`}
       />
     </article>

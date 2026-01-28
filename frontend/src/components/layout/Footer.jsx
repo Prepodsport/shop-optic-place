@@ -1,96 +1,126 @@
 import { Link } from "react-router-dom";
-import "./Footer.css";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="footer">
-      <div className="footer__container">
-        <div className="footer__grid">
+    <footer
+      className="mt-auto pt-12 pb-6 border-t sm:pt-8 sm:pb-5"
+      style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+    >
+      <div className="max-w-[1280px] mx-auto px-4">
+        <div className="grid grid-cols-4 gap-10 mb-10 lg:grid-cols-2 lg:gap-8 sm:grid-cols-1 sm:gap-6 sm:mb-6">
           {/* О компании */}
-          <div className="footer__column">
-            <h4 className="footer__title">О компании</h4>
-            <ul className="footer__list">
+          <div>
+            <h4 className="text-base font-semibold mb-4 m-0" style={{ color: 'var(--text)' }}>
+              О компании
+            </h4>
+            <ul className="list-none m-0 p-0 space-y-2.5">
               <li>
-                <Link to="/about" className="footer__link">О нас</Link>
+                <Link to="/about" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  О нас
+                </Link>
               </li>
               <li>
-                <Link to="/contacts" className="footer__link">Контакты</Link>
+                <Link to="/contacts" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Контакты
+                </Link>
               </li>
               <li>
-                <Link to="/vacancies" className="footer__link">Вакансии</Link>
+                <Link to="/vacancies" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Вакансии
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Покупателям */}
-          <div className="footer__column">
-            <h4 className="footer__title">Покупателям</h4>
-            <ul className="footer__list">
+          <div>
+            <h4 className="text-base font-semibold mb-4 m-0" style={{ color: 'var(--text)' }}>
+              Покупателям
+            </h4>
+            <ul className="list-none m-0 p-0 space-y-2.5">
               <li>
-                <Link to="/delivery" className="footer__link">Доставка</Link>
+                <Link to="/delivery" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Доставка
+                </Link>
               </li>
               <li>
-                <Link to="/payment" className="footer__link">Оплата</Link>
+                <Link to="/payment" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Оплата
+                </Link>
               </li>
               <li>
-                <Link to="/return" className="footer__link">Возврат</Link>
+                <Link to="/return" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Возврат
+                </Link>
               </li>
               <li>
-                <Link to="/faq" className="footer__link">FAQ</Link>
+                <Link to="/faq" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  FAQ
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Сервисы */}
-          <div className="footer__column">
-            <h4 className="footer__title">Сервисы</h4>
-            <ul className="footer__list">
+          <div>
+            <h4 className="text-base font-semibold mb-4 m-0" style={{ color: 'var(--text)' }}>
+              Сервисы
+            </h4>
+            <ul className="list-none m-0 p-0 space-y-2.5">
               <li>
-                <Link to="/lens-calculator" className="footer__link">Калькулятор линз</Link>
+                <Link to="/lens-calculator" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Калькулятор линз
+                </Link>
               </li>
               <li>
-                <Link to="/booking" className="footer__link">Проверка зрения</Link>
+                <Link to="/booking" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Проверка зрения
+                </Link>
               </li>
               <li>
-                <Link to="/prescriptions" className="footer__link">Мои рецепты</Link>
+                <Link to="/prescriptions" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Мои рецепты
+                </Link>
               </li>
               <li>
-                <Link to="/lens-reminders" className="footer__link">Напоминания о замене</Link>
+                <Link to="/lens-reminders" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
+                  Напоминания о замене
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Контакты */}
-          <div className="footer__column">
-            <h4 className="footer__title">Контакты</h4>
-            <ul className="footer__list footer__contacts">
+          <div>
+            <h4 className="text-base font-semibold mb-4 m-0" style={{ color: 'var(--text)' }}>
+              Контакты
+            </h4>
+            <ul className="list-none m-0 p-0 space-y-2.5">
               <li>
-                <a href="tel:+74954970497" className="footer__link">
+                <a href="tel:+74954970497" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
                   +7 495 497-0-497
                 </a>
               </li>
               <li>
-                <a href="mailto:info@shop.opticplace.ru" className="footer__link">
+                <a href="mailto:info@shop.opticplace.ru" className="text-sm no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
                   info@shop.opticplace.ru
                 </a>
               </li>
-              <li className="footer__address">
+              <li className="text-sm" style={{ color: 'var(--muted)' }}>
                 г. Москва, ул. Старая Басманная, 14/2 стр. 4
               </li>
             </ul>
-          </div>
 
-          {/* Социальные сети */}
-          <div className="footer__column">
-            <h4 className="footer__title">Мы в соцсетях</h4>
-            <div className="footer__socials">
+            {/* Социальные сети */}
+            <div className="flex gap-3 mt-4">
               <a
                 href="https://vk.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="footer__social"
+                className="flex items-center justify-center w-10 h-10 rounded-[10px] transition-colors duration-200 hover:bg-[var(--primary)] hover:text-white"
+                style={{ background: 'var(--bg)', color: 'var(--muted)' }}
                 aria-label="ВКонтакте"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -101,7 +131,8 @@ export default function Footer() {
                 href="https://t.me"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="footer__social"
+                className="flex items-center justify-center w-10 h-10 rounded-[10px] transition-colors duration-200 hover:bg-[var(--primary)] hover:text-white"
+                style={{ background: 'var(--bg)', color: 'var(--muted)' }}
                 aria-label="Telegram"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -113,15 +144,18 @@ export default function Footer() {
         </div>
 
         {/* Нижняя часть */}
-        <div className="footer__bottom">
-          <p className="footer__copyright">
+        <div
+          className="flex justify-between items-center pt-6 border-t sm:flex-col sm:gap-4 sm:text-center"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <p className="text-[13px] m-0" style={{ color: 'var(--muted)' }}>
             © {currentYear} OpticPlace. Все права защищены.
           </p>
-          <div className="footer__legal">
-            <Link to="/privacy" className="footer__legal-link">
+          <div className="flex gap-6 sm:flex-col sm:gap-2">
+            <Link to="/privacy" className="text-[13px] no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
               Политика конфиденциальности
             </Link>
-            <Link to="/terms" className="footer__legal-link">
+            <Link to="/terms" className="text-[13px] no-underline transition-colors duration-200 hover:text-[var(--primary)]" style={{ color: 'var(--muted)' }}>
               Пользовательское соглашение
             </Link>
           </div>

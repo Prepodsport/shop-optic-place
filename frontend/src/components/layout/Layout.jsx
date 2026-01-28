@@ -3,7 +3,6 @@ import TopHeader from "./TopHeader.jsx";
 import Header from "./Header.jsx";
 import MegaMenu from "./MegaMenu.jsx";
 import Footer from "./Footer.jsx";
-import "./Layout.css";
 
 export default function Layout({ children }) {
   const [topOffset, setTopOffset] = useState(0);
@@ -35,16 +34,17 @@ export default function Layout({ children }) {
 
   return (
     <div
-      className="layout"
+      className="min-h-screen flex flex-col transition-[padding-top] duration-300"
       style={{
         "--top-offset": `${topOffset}px`,
         "--header-height": `${headerHeight}px`,
+        paddingTop: `${topOffset}px`,
       }}
     >
       <TopHeader onStateChange={handleTopState} />
       <Header ref={headerRef} />
       <MegaMenu />
-      <main className="layout__main">{children}</main>
+      <main className="flex-1 py-6">{children}</main>
       <Footer />
     </div>
   );

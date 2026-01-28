@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, getTokens, logout as apiLogout, getErrorMessage } from "../api.js";
 import { Link, useNavigate } from "react-router-dom";
-import "./Account.css";
 
 export default function Account() {
   const navigate = useNavigate();
@@ -115,12 +114,18 @@ export default function Account() {
   };
 
   return (
-    <div className="account">
-      <div className="account__container">
-        <div className="account__header">
-          <h1 className="account__title">Личный кабинет</h1>
+    <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+      <div className="max-w-[1280px] mx-auto">
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+          <h1 className="text-[32px] md:text-[26px] font-bold m-0" style={{ color: 'var(--text)' }}>
+            Личный кабинет
+          </h1>
           {loggedIn && (
-            <button className="account__logout-btn" onClick={handleLogout}>
+            <button
+              className="flex items-center gap-2 py-2.5 px-4 bg-transparent border border-[var(--border)] rounded-[10px] text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-red-100 hover:border-red-200 hover:text-red-600"
+              style={{ color: 'var(--text)' }}
+              onClick={handleLogout}
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
@@ -132,79 +137,142 @@ export default function Account() {
         </div>
 
         {!loggedIn ? (
-          <div className="account__empty">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div
+            className="text-center py-20 px-5 rounded-2xl border"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          >
+            <svg
+              className="mb-5"
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              style={{ color: 'var(--muted)' }}
+            >
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
 
-            <h3>Вы не авторизованы</h3>
-            <p>Войдите в аккаунт, чтобы видеть заказы и управлять профилем</p>
+            <h3 className="m-0 mb-3 text-[22px]" style={{ color: 'var(--text)' }}>
+              Вы не авторизованы
+            </h3>
+            <p className="m-0 mb-6 text-base" style={{ color: 'var(--muted)' }}>
+              Войдите в аккаунт, чтобы видеть заказы и управлять профилем
+            </p>
 
-            <div className="account__actions">
-              <Link className="account__btn account__btn--primary" to="/login">
+            <div className="flex gap-3 flex-wrap mt-4.5 justify-center">
+              <Link
+                className="inline-flex items-center justify-center py-3 px-4.5 bg-[var(--primary)] border border-[var(--primary)] rounded-[10px] text-white text-sm font-semibold no-underline cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 hover:no-underline"
+                to="/login"
+              >
                 Войти
               </Link>
-              <Link className="account__btn" to="/register">
+              <Link
+                className="inline-flex items-center justify-center py-3 px-4.5 bg-transparent border border-[var(--border)] rounded-[10px] text-sm font-semibold no-underline cursor-pointer transition-all duration-200 hover:bg-[var(--bg)] hover:no-underline"
+                style={{ color: 'var(--text)' }}
+                to="/register"
+              >
                 Регистрация
               </Link>
             </div>
           </div>
         ) : loading || !me ? (
-          <div className="account__skeleton">
-            <div className="account__card account__card--skeleton" />
-            <div className="account__card account__card--skeleton" />
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-6">
+            <div
+              className="h-55 rounded-2xl border relative overflow-hidden animate-shimmer"
+              style={{
+                background: 'linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%)',
+                backgroundSize: '200% 100%',
+                borderColor: 'var(--border)',
+              }}
+            />
+            <div
+              className="h-55 rounded-2xl border relative overflow-hidden animate-shimmer"
+              style={{
+                background: 'linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%)',
+                backgroundSize: '200% 100%',
+                borderColor: 'var(--border)',
+              }}
+            />
           </div>
         ) : (
-          <div className="account__grid">
+          <div className="grid grid-cols-2 lg:grid-cols-2 gap-6 items-start">
             {/* Профиль */}
-            <div className="account__card">
-              <div className="account__card-header">
-                <div className="account__card-title">Профиль</div>
+            <div
+              className="rounded-2xl p-6 border"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-lg font-bold m-0" style={{ color: 'var(--text)' }}>
+                  Профиль
+                </div>
                 {!editing && (
-                  <button className="account__edit-btn" onClick={handleEdit}>
+                  <button
+                    className="py-2 px-3.5 bg-transparent border border-[var(--border)] rounded-lg text-[13px] font-medium cursor-pointer transition-all duration-200 text-[var(--primary)] hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-white"
+                    onClick={handleEdit}
+                  >
                     Редактировать
                   </button>
                 )}
               </div>
 
-              {error && <div className="account__error">{error}</div>}
-              {success && <div className="account__success">{success}</div>}
+              {error && (
+                <div className="py-3 px-4 mb-4 bg-red-50 border border-red-200 rounded-[10px] text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="py-3 px-4 mb-4 bg-green-50 border border-green-200 rounded-[10px] text-green-600 text-sm">
+                  {success}
+                </div>
+              )}
 
               {editing ? (
-                <form onSubmit={handleSave} className="account__form">
-                  <div className="account__field">
-                    <label className="account__label">Имя</label>
+                <form onSubmit={handleSave} className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[13px] font-medium" style={{ color: 'var(--text)' }}>
+                      Имя
+                    </label>
                     <input
                       type="text"
-                      className="account__input"
+                      className="py-3 px-3.5 rounded-[10px] border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                      style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       value={formData.first_name}
                       onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     />
                   </div>
-                  <div className="account__field">
-                    <label className="account__label">Фамилия</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[13px] font-medium" style={{ color: 'var(--text)' }}>
+                      Фамилия
+                    </label>
                     <input
                       type="text"
-                      className="account__input"
+                      className="py-3 px-3.5 rounded-[10px] border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                      style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       value={formData.last_name}
                       onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                     />
                   </div>
-                  <div className="account__field">
-                    <label className="account__label">Телефон</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[13px] font-medium" style={{ color: 'var(--text)' }}>
+                      Телефон
+                    </label>
                     <input
                       type="tel"
-                      className="account__input"
+                      className="py-3 px-3.5 rounded-[10px] border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                      style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="+7 (999) 123-45-67"
                     />
                   </div>
-                  <div className="account__form-actions">
+                  <div className="flex gap-3 mt-2">
                     <button
                       type="button"
-                      className="account__btn"
+                      className="inline-flex items-center justify-center py-3 px-4.5 bg-transparent border border-[var(--border)] rounded-[10px] text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[var(--bg)] disabled:opacity-60 disabled:cursor-not-allowed"
+                      style={{ color: 'var(--text)' }}
                       onClick={handleCancel}
                       disabled={saving}
                     >
@@ -212,7 +280,7 @@ export default function Account() {
                     </button>
                     <button
                       type="submit"
-                      className="account__btn account__btn--primary"
+                      className="inline-flex items-center justify-center py-3 px-4.5 bg-[var(--primary)] border border-[var(--primary)] rounded-[10px] text-white text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
                       disabled={saving}
                     >
                       {saving ? "Сохранение..." : "Сохранить"}
@@ -221,75 +289,110 @@ export default function Account() {
                 </form>
               ) : (
                 <>
-                  <div className="account__row">
-                    <div className="account__label">Email</div>
-                    <div className="account__value">{me.email || "—"}</div>
+                  <div
+                    className="grid grid-cols-[140px_1fr] md:grid-cols-2 gap-3 md:gap-1.5 py-3 border-b"
+                    style={{ borderColor: 'var(--border)' }}
+                  >
+                    <div className="text-[13px]" style={{ color: 'var(--muted)' }}>Email</div>
+                    <div className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
+                      {me.email || "—"}
+                    </div>
                   </div>
 
-                  <div className="account__row">
-                    <div className="account__label">Имя</div>
-                    <div className="account__value">
+                  <div
+                    className="grid grid-cols-[140px_1fr] md:grid-cols-2 gap-3 md:gap-1.5 py-3 border-b"
+                    style={{ borderColor: 'var(--border)' }}
+                  >
+                    <div className="text-[13px]" style={{ color: 'var(--muted)' }}>Имя</div>
+                    <div className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
                       {[me.first_name, me.last_name].filter(Boolean).join(" ") || "—"}
                     </div>
                   </div>
 
-                  <div className="account__row">
-                    <div className="account__label">Телефон</div>
-                    <div className="account__value">{me.phone || "—"}</div>
+                  <div
+                    className="grid grid-cols-[140px_1fr] md:grid-cols-2 gap-3 md:gap-1.5 py-3 border-b"
+                    style={{ borderColor: 'var(--border)' }}
+                  >
+                    <div className="text-[13px]" style={{ color: 'var(--muted)' }}>Телефон</div>
+                    <div className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
+                      {me.phone || "—"}
+                    </div>
                   </div>
 
-                  <div className="account__row">
-                    <div className="account__label">Дата регистрации</div>
-                    <div className="account__value">{formatDate(me.date_joined)}</div>
+                  <div className="grid grid-cols-[140px_1fr] md:grid-cols-2 gap-3 md:gap-1.5 py-3">
+                    <div className="text-[13px]" style={{ color: 'var(--muted)' }}>Дата регистрации</div>
+                    <div className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
+                      {formatDate(me.date_joined)}
+                    </div>
                   </div>
                 </>
               )}
             </div>
 
             {/* Заказы */}
-            <div className="account__card">
-              <div className="account__card-title">История заказов</div>
+            <div
+              className="rounded-2xl p-6 border"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <div className="text-lg font-bold m-0 mb-4" style={{ color: 'var(--text)' }}>
+                История заказов
+              </div>
 
               {orders.length === 0 ? (
-                <div className="account__orders-empty">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <div className="text-center py-10 px-5">
+                  <svg
+                    className="mb-4"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    style={{ color: 'var(--muted)' }}
+                  >
                     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <path d="M16 10a4 4 0 0 1-8 0"></path>
                   </svg>
-                  <p>У вас пока нет заказов</p>
-                  <Link to="/catalog" className="account__btn account__btn--primary">
+                  <p className="m-0 mb-5 text-[15px]" style={{ color: 'var(--muted)' }}>
+                    У вас пока нет заказов
+                  </p>
+                  <Link
+                    to="/catalog"
+                    className="inline-flex items-center justify-center py-3 px-4.5 bg-[var(--primary)] border border-[var(--primary)] rounded-[10px] text-white text-sm font-semibold no-underline cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 hover:no-underline"
+                  >
                     Перейти в каталог
                   </Link>
                 </div>
               ) : (
-                <div className="account__orders">
+                <div className="flex flex-col gap-3">
                   {orders.map((order) => (
                     <Link
                       key={order.id}
                       to={`/orders/${order.id}`}
-                      className="account__order"
+                      className="block p-4 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:shadow-sm hover:no-underline"
+                      style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
                     >
-                      <div className="account__order-header">
-                        <span className="account__order-number">
+                      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                        <span className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
                           Заказ #{order.id}
                         </span>
                         <span
-                          className="account__order-status"
+                          className="py-1 px-2.5 rounded-[20px] text-xs font-semibold text-white"
                           style={{ backgroundColor: getStatusColor(order.status) }}
                         >
                           {order.status_display}
                         </span>
                       </div>
-                      <div className="account__order-info">
-                        <span className="account__order-date">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[13px]" style={{ color: 'var(--muted)' }}>
                           {formatDate(order.created_at)}
                         </span>
-                        <span className="account__order-total">
+                        <span className="text-[15px] font-bold" style={{ color: 'var(--text)' }}>
                           {formatPrice(order.grand_total)}
                         </span>
                       </div>
-                      <div className="account__order-items">
+                      <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
                         {order.items_count} {order.items_count === 1 ? "товар" : order.items_count < 5 ? "товара" : "товаров"}
                       </div>
                     </Link>
@@ -299,52 +402,81 @@ export default function Account() {
             </div>
 
             {/* Быстрые действия */}
-            <div className="account__card account__card--actions">
-              <div className="account__card-title">Быстрые действия</div>
-              <div className="account__quick-actions">
-                <Link to="/cart" className="account__quick-action">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div
+              className="col-span-full rounded-2xl p-6 border"
+              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+            >
+              <div className="text-lg font-bold m-0 mb-4" style={{ color: 'var(--text)' }}>
+                Быстрые действия
+              </div>
+              <div className="grid grid-cols-4 lg:grid-cols-2 sm:grid-cols-2 gap-4">
+                <Link
+                  to="/cart"
+                  className="flex flex-col items-center gap-2.5 py-5 sm:py-4 px-4 sm:px-3 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:bg-blue-500/5 hover:no-underline"
+                  style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
                     <circle cx="9" cy="21" r="1"></circle>
                     <circle cx="20" cy="21" r="1"></circle>
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                   </svg>
-                  <span>Корзина</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Корзина</span>
                 </Link>
-                <Link to="/favorites" className="account__quick-action">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <Link
+                  to="/favorites"
+                  className="flex flex-col items-center gap-2.5 py-5 sm:py-4 px-4 sm:px-3 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:bg-blue-500/5 hover:no-underline"
+                  style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                   </svg>
-                  <span>Избранное</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Избранное</span>
                 </Link>
-                <Link to="/prescriptions" className="account__quick-action">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <Link
+                  to="/prescriptions"
+                  className="flex flex-col items-center gap-2.5 py-5 sm:py-4 px-4 sm:px-3 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:bg-blue-500/5 hover:no-underline"
+                  style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
-                  <span>Мои рецепты</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Мои рецепты</span>
                 </Link>
-                <Link to="/lens-reminders" className="account__quick-action">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <Link
+                  to="/lens-reminders"
+                  className="flex flex-col items-center gap-2.5 py-5 sm:py-4 px-4 sm:px-3 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:bg-blue-500/5 hover:no-underline"
+                  style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
-                  <span>Напоминания</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Напоминания</span>
                 </Link>
-                <Link to="/booking" className="account__quick-action">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <Link
+                  to="/booking"
+                  className="flex flex-col items-center gap-2.5 py-5 sm:py-4 px-4 sm:px-3 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:bg-blue-500/5 hover:no-underline"
+                  style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                   </svg>
-                  <span>Запись на приём</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Запись на приём</span>
                 </Link>
-                <Link to="/catalog" className="account__quick-action">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <Link
+                  to="/catalog"
+                  className="flex flex-col items-center gap-2.5 py-5 sm:py-4 px-4 sm:px-3 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:bg-blue-500/5 hover:no-underline"
+                  style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                   </svg>
-                  <span>Каталог</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Каталог</span>
                 </Link>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { api, getTokens, getErrorMessage } from "../../api.js";
-import "./ProductReviews.css";
 
 export default function ProductReviews({ productId, productSlug }) {
   const [reviews, setReviews] = useState([]);
@@ -15,14 +14,11 @@ export default function ProductReviews({ productId, productSlug }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // { [reviewId]: true|false|null } true=Да, false=Нет, null/undefined=не голосовал
   const [voteByReviewId, setVoteByReviewId] = useState({});
-  // { [reviewId]: true|false|null } "committed" = что было реально отправлено на бэк (чтобы не накручивать повторно)
   const [committedVoteByReviewId, setCommittedVoteByReviewId] = useState({});
-  // { [reviewId]: true } пока идет запрос
   const [pendingVote, setPendingVote] = useState({});
 
-  const VOTES_LS_KEY = "review_votes_v1"; // { [reviewId]: { v: true|false, c: true|false } } (v=current, c=committed)
+  const VOTES_LS_KEY = "review_votes_v1";
 
   const isLoggedIn = Boolean(getTokens().access);
 
@@ -42,7 +38,6 @@ export default function ProductReviews({ productId, productSlug }) {
       const committed = {};
 
       for (const [id, val] of Object.entries(raw)) {
-        // backward compatibility: если вдруг лежал boolean
         if (val === true || val === false) {
           current[id] = val;
           committed[id] = val;
@@ -75,7 +70,6 @@ export default function ProductReviews({ productId, productSlug }) {
       c: committedVote === true || committedVote === false ? committedVote : null,
     };
 
-    // если вообще ничего нет — удаляем ключ
     if (next.v === null && next.c === null) {
       delete raw[id];
     } else {
@@ -86,7 +80,6 @@ export default function ProductReviews({ productId, productSlug }) {
   }
 
   function applyVoteOverlayToCounts(review, committedVote, currentVote) {
-    // Если не было committed или нет текущего голоса — ничего не трогаем
     if (!(committedVote === true || committedVote === false)) return review;
     if (!(currentVote === true || currentVote === false)) return review;
     if (committedVote === currentVote) return review;
@@ -94,11 +87,9 @@ export default function ProductReviews({ productId, productSlug }) {
     let helpful = Number(review.helpful_count || 0);
     let notHelpful = Number(review.not_helpful_count || 0);
 
-    // Убираем committed (потому что серверные счетчики уже его содержат)
     if (committedVote === true) helpful = Math.max(0, helpful - 1);
     if (committedVote === false) notHelpful = Math.max(0, notHelpful - 1);
 
-    // Добавляем текущий (локальный) выбор
     if (currentVote === true) helpful += 1;
     if (currentVote === false) notHelpful += 1;
 
@@ -118,12 +109,10 @@ export default function ProductReviews({ productId, productSlug }) {
 
       const list = resp.data.reviews || [];
 
-      // 1) читаем localStorage
       const saved = loadVotesFromStorage();
       setVoteByReviewId(saved.current);
       setCommittedVoteByReviewId(saved.committed);
 
-      // 2) накладываем локальный выбор (если он отличается от committed) на счетчики, чтобы после refresh было “как было”
       const adjusted = list.map((r) =>
         applyVoteOverlayToCounts(r, saved.committed[String(r.id)], saved.current[String(r.id)])
       );
@@ -194,26 +183,19 @@ export default function ProductReviews({ productId, productSlug }) {
     }
   }
 
-  // ✅ ЛОГИКА ГОЛОСОВАНИЯ:
-  // - первый голос отправляем на бэк и фиксируем committed
-  // - переключение после первого голоса делаем только локально (без бэка), чтобы не накручивать
   async function handleHelpful(reviewId, nextVote) {
-    // nextVote: true => "Да", false => "Нет"
     if (pendingVote[reviewId]) return;
 
     const id = String(reviewId);
     const prevVote = voteByReviewId[id] ?? null;
     const committed = committedVoteByReviewId[id] ?? null;
 
-    // повторный клик по тому же варианту — ничего
     if (prevVote === nextVote) return;
 
     setPendingVote((prev) => ({ ...prev, [reviewId]: true }));
 
-    // оптимистично обновляем vote
     setVoteByReviewId((prev) => ({ ...prev, [id]: nextVote }));
 
-    // оптимистично обновляем счетчики
     setReviews((prev) =>
       prev.map((r) => {
         if (String(r.id) !== id) return r;
@@ -221,11 +203,9 @@ export default function ProductReviews({ productId, productSlug }) {
         let helpful = Number(r.helpful_count || 0);
         let notHelpful = Number(r.not_helpful_count || 0);
 
-        // снимаем прошлый голос (локальный)
         if (prevVote === true) helpful = Math.max(0, helpful - 1);
         if (prevVote === false) notHelpful = Math.max(0, notHelpful - 1);
 
-        // ставим новый (локальный)
         if (nextVote === true) helpful += 1;
         if (nextVote === false) notHelpful += 1;
 
@@ -234,13 +214,11 @@ export default function ProductReviews({ productId, productSlug }) {
     );
 
     try {
-      // если committed уже есть — это переключение: НЕ шлем на бэк, иначе он накрутит
       if (committed === true || committed === false) {
         saveVoteToStorage(reviewId, nextVote, committed);
         return;
       }
 
-      // первый голос: шлем на бэк и фиксируем committed
       const endpoint = nextVote
         ? `/catalog/reviews/${reviewId}/helpful/`
         : `/catalog/reviews/${reviewId}/not_helpful/`;
@@ -252,10 +230,8 @@ export default function ProductReviews({ productId, productSlug }) {
     } catch (err) {
       console.error("Error marking review:", err);
 
-      // откат vote
       setVoteByReviewId((prev) => ({ ...prev, [id]: prevVote }));
 
-      // откат счетчиков
       setReviews((prev) =>
         prev.map((r) => {
           if (String(r.id) !== id) return r;
@@ -263,19 +239,15 @@ export default function ProductReviews({ productId, productSlug }) {
           let helpful = Number(r.helpful_count || 0);
           let notHelpful = Number(r.not_helpful_count || 0);
 
-          // откатываем nextVote
           if (nextVote === true) helpful = Math.max(0, helpful - 1);
           if (nextVote === false) notHelpful = Math.max(0, notHelpful - 1);
 
-          // возвращаем prevVote
           if (prevVote === true) helpful += 1;
           if (prevVote === false) notHelpful += 1;
 
           return { ...r, helpful_count: helpful, not_helpful_count: notHelpful };
         })
       );
-
-      // storage не трогаем (первый голос не зафиксировался)
     } finally {
       setPendingVote((prev) => {
         const next = { ...prev };
@@ -287,16 +259,18 @@ export default function ProductReviews({ productId, productSlug }) {
 
   function renderStars(rating, interactive = false, onChange = null) {
     return (
-      <div className={`reviews__stars ${interactive ? "reviews__stars--interactive" : ""}`}>
+      <div className={`flex gap-0.5 ${interactive ? "[&_button]:cursor-pointer [&_button:hover]:scale-[1.2]" : ""}`}>
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             type={interactive ? "button" : undefined}
-            className={`reviews__star ${star <= rating ? "reviews__star--filled" : ""}`}
+            className={`w-5 h-5 p-0 border-none bg-transparent transition-transform duration-150 ${
+              star <= rating ? "text-amber-400" : "text-gray-300"
+            } ${interactive ? "" : "cursor-default"}`}
             onClick={interactive && onChange ? () => onChange(star) : undefined}
             disabled={!interactive}
           >
-            <svg viewBox="0 0 24 24" fill="currentColor">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
           </button>
@@ -315,46 +289,70 @@ export default function ProductReviews({ productId, productSlug }) {
 
   if (loading) {
     return (
-      <div className="reviews">
-        <div className="reviews__loading">Загрузка отзывов...</div>
+      <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--border)' }}>
+        <div className="text-center py-10" style={{ color: 'var(--muted)' }}>
+          Загрузка отзывов...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="reviews">
-      <div className="reviews__header">
-        <h2 className="reviews__title">
+    <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+        <h2 className="text-2xl font-bold m-0" style={{ color: 'var(--text)' }}>
           Отзывы
-          {stats.total_count > 0 && <span className="reviews__count">({stats.total_count})</span>}
+          {stats.total_count > 0 && (
+            <span className="font-normal ml-2" style={{ color: 'var(--muted)' }}>
+              ({stats.total_count})
+            </span>
+          )}
         </h2>
-        <button className="reviews__add-btn" onClick={() => setShowForm(!showForm)}>
+        <button
+          className="py-2.5 px-5 bg-[var(--primary)] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-colors duration-200 hover:bg-blue-700"
+          onClick={() => setShowForm(!showForm)}
+        >
           {showForm ? "Отмена" : "Написать отзыв"}
         </button>
       </div>
 
       {stats.total_count > 0 && (
-        <div className="reviews__stats">
-          <div className="reviews__average">
-            <span className="reviews__average-value">{stats.average_rating?.toFixed(1) || "—"}</span>
+        <div
+          className="flex md:flex-col gap-10 md:gap-6 p-6 rounded-xl mb-8"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+        >
+          <div className="flex flex-col md:flex-row md:justify-center items-center gap-2 md:gap-4 min-w-[140px]">
+            <span className="text-5xl font-bold leading-none" style={{ color: 'var(--text)' }}>
+              {stats.average_rating?.toFixed(1) || "—"}
+            </span>
             {renderStars(Math.round(stats.average_rating || 0))}
-            <span className="reviews__average-text">
+            <span className="text-[13px] text-center" style={{ color: 'var(--muted)' }}>
               на основе {stats.total_count}{" "}
               {stats.total_count === 1 ? "отзыва" : stats.total_count < 5 ? "отзывов" : "отзывов"}
             </span>
           </div>
 
-          <div className="reviews__distribution">
+          <div className="flex-1 flex flex-col gap-2">
             {[5, 4, 3, 2, 1].map((rating) => {
               const count = stats.rating_distribution[String(rating)] || 0;
               const percent = stats.total_count > 0 ? (count / stats.total_count) * 100 : 0;
               return (
-                <div key={rating} className="reviews__distribution-row">
-                  <span className="reviews__distribution-label">{rating}</span>
-                  <div className="reviews__distribution-bar">
-                    <div className="reviews__distribution-fill" style={{ width: `${percent}%` }} />
+                <div key={rating} className="flex items-center gap-3">
+                  <span className="w-4 text-sm text-center" style={{ color: 'var(--muted)' }}>
+                    {rating}
+                  </span>
+                  <div
+                    className="flex-1 h-2 rounded overflow-hidden"
+                    style={{ background: 'var(--bg)' }}
+                  >
+                    <div
+                      className="h-full bg-amber-400 rounded transition-[width] duration-300"
+                      style={{ width: `${percent}%` }}
+                    />
                   </div>
-                  <span className="reviews__distribution-count">{count}</span>
+                  <span className="w-[30px] text-[13px] text-right" style={{ color: 'var(--muted)' }}>
+                    {count}
+                  </span>
                 </div>
               );
             })}
@@ -363,12 +361,18 @@ export default function ProductReviews({ productId, productSlug }) {
       )}
 
       {showForm && (
-        <form className="reviews__form" onSubmit={handleSubmit}>
-          <h3>Написать отзыв</h3>
+        <form
+          className="p-6 rounded-xl mb-8"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+          onSubmit={handleSubmit}
+        >
+          <h3 className="text-lg font-semibold m-0 mb-5">Написать отзыв</h3>
 
           {!isLoggedIn && (
-            <div className="reviews__form-field">
-              <label>Ваше имя *</label>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
+                Ваше имя *
+              </label>
               <input
                 type="text"
                 name="author_name"
@@ -376,30 +380,48 @@ export default function ProductReviews({ productId, productSlug }) {
                 onChange={handleChange}
                 required
                 placeholder="Как вас зовут?"
+                className="w-full py-2.5 px-3.5 rounded-lg text-[15px] transition-colors duration-200 focus:outline-none focus:border-[var(--primary)]"
+                style={{
+                  background: 'var(--bg)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border)',
+                }}
               />
             </div>
           )}
 
-          <div className="reviews__form-field">
-            <label>Оценка *</label>
-            <div className="reviews__form-rating">
+          <div className="mb-4">
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
+              Оценка *
+            </label>
+            <div className="py-2 [&_.flex]:gap-1 [&_button]:w-8 [&_button]:h-8">
               {renderStars(formData.rating, true, (rating) => setFormData((prev) => ({ ...prev, rating })))}
             </div>
           </div>
 
-          <div className="reviews__form-field">
-            <label>Заголовок</label>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
+              Заголовок
+            </label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
               placeholder="Кратко о вашем впечатлении"
+              className="w-full py-2.5 px-3.5 rounded-lg text-[15px] transition-colors duration-200 focus:outline-none focus:border-[var(--primary)]"
+              style={{
+                background: 'var(--bg)',
+                color: 'var(--text)',
+                border: '1px solid var(--border)',
+              }}
             />
           </div>
 
-          <div className="reviews__form-field">
-            <label>Отзыв *</label>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
+              Отзыв *
+            </label>
             <textarea
               name="text"
               value={formData.text}
@@ -408,80 +430,142 @@ export default function ProductReviews({ productId, productSlug }) {
               rows="4"
               placeholder="Расскажите о товаре подробнее (минимум 10 символов)"
               minLength={10}
+              className="w-full py-2.5 px-3.5 rounded-lg text-[15px] resize-y transition-colors duration-200 focus:outline-none focus:border-[var(--primary)]"
+              style={{
+                background: 'var(--bg)',
+                color: 'var(--text)',
+                border: '1px solid var(--border)',
+              }}
             />
           </div>
 
-          <div className="reviews__form-row">
-            <div className="reviews__form-field">
-              <label>Достоинства</label>
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
+                Достоинства
+              </label>
               <textarea
                 name="advantages"
                 value={formData.advantages}
                 onChange={handleChange}
                 rows="2"
                 placeholder="Что понравилось?"
+                className="w-full py-2.5 px-3.5 rounded-lg text-[15px] resize-y transition-colors duration-200 focus:outline-none focus:border-[var(--primary)]"
+                style={{
+                  background: 'var(--bg)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border)',
+                }}
               />
             </div>
-            <div className="reviews__form-field">
-              <label>Недостатки</label>
+            <div>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
+                Недостатки
+              </label>
               <textarea
                 name="disadvantages"
                 value={formData.disadvantages}
                 onChange={handleChange}
                 rows="2"
                 placeholder="Что не понравилось?"
+                className="w-full py-2.5 px-3.5 rounded-lg text-[15px] resize-y transition-colors duration-200 focus:outline-none focus:border-[var(--primary)]"
+                style={{
+                  background: 'var(--bg)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border)',
+                }}
               />
             </div>
           </div>
 
-          {error && <div className="reviews__form-error">{error}</div>}
-          {success && <div className="reviews__form-success">{success}</div>}
+          {error && (
+            <div className="p-3 rounded-lg text-sm mb-4 bg-red-500/10 border border-red-500/35 text-red-600">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 rounded-lg text-sm mb-4 bg-green-500/10 border border-green-500/35 text-green-600">
+              {success}
+            </div>
+          )}
 
-          <button type="submit" className="reviews__form-submit" disabled={submitting}>
+          <button
+            type="submit"
+            className="py-3 px-6 bg-[var(--primary)] text-white border-none rounded-lg text-[15px] font-semibold cursor-pointer transition-colors duration-200 hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={submitting}
+          >
             {submitting ? "Отправка..." : "Отправить отзыв"}
           </button>
         </form>
       )}
 
-      {success && !showForm && <div className="reviews__success-message">{success}</div>}
+      {success && !showForm && (
+        <div className="p-4 bg-green-500/10 border border-green-500/35 rounded-lg text-green-600 mb-6">
+          {success}
+        </div>
+      )}
 
       {reviews.length === 0 ? (
-        <div className="reviews__empty">
+        <div
+          className="text-center py-10 px-5 rounded-xl"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--muted)' }}
+        >
           <p>Отзывов пока нет. Будьте первым!</p>
         </div>
       ) : (
-        <div className="reviews__list">
+        <div className="flex flex-col gap-5">
           {reviews.map((review) => {
             const id = String(review.id);
             const myVote = voteByReviewId[id] ?? null;
             const isPending = Boolean(pendingVote[review.id]);
 
             return (
-              <div key={review.id} className="reviews__item">
-                <div className="reviews__item-header">
-                  <div className="reviews__item-author">
-                    <span className="reviews__item-name">{review.author_name}</span>
-                    {review.is_verified_purchase && <span className="reviews__verified">Покупка подтверждена</span>}
+              <div
+                key={review.id}
+                className="p-5 rounded-xl"
+                style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+              >
+                <div className="flex justify-between items-start mb-3 flex-wrap gap-2 md:flex-col">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-semibold" style={{ color: 'var(--text)' }}>
+                      {review.author_name}
+                    </span>
+                    {review.is_verified_purchase && (
+                      <span className="inline-block py-0.5 px-2 bg-green-500/10 text-green-600 text-[11px] font-semibold rounded">
+                        Покупка подтверждена
+                      </span>
+                    )}
                   </div>
-                  <div className="reviews__item-meta">
+                  <div className="flex items-center gap-3">
                     {renderStars(review.rating)}
-                    <span className="reviews__item-date">{formatDate(review.created_at)}</span>
+                    <span className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                      {formatDate(review.created_at)}
+                    </span>
                   </div>
                 </div>
 
-                {review.title && <h4 className="reviews__item-title">{review.title}</h4>}
+                {review.title && (
+                  <h4 className="text-base font-semibold m-0 mb-2" style={{ color: 'var(--text)' }}>
+                    {review.title}
+                  </h4>
+                )}
 
-                <p className="reviews__item-text">{review.text}</p>
+                <p className="leading-relaxed m-0 mb-3" style={{ color: 'var(--text)' }}>
+                  {review.text}
+                </p>
 
                 {(review.advantages || review.disadvantages) && (
-                  <div className="reviews__item-pros-cons">
+                  <div
+                    className="flex flex-col gap-2 mb-3 p-3 rounded-lg text-sm"
+                    style={{ background: 'var(--bg)' }}
+                  >
                     {review.advantages && (
-                      <div className="reviews__item-pros">
+                      <div className="text-green-600">
                         <strong>Достоинства:</strong> {review.advantages}
                       </div>
                     )}
                     {review.disadvantages && (
-                      <div className="reviews__item-cons">
+                      <div className="text-red-600">
                         <strong>Недостатки:</strong> {review.disadvantages}
                       </div>
                     )}
@@ -489,17 +573,36 @@ export default function ProductReviews({ productId, productSlug }) {
                 )}
 
                 {review.admin_response && (
-                  <div className="reviews__item-response">
-                    <strong>Ответ магазина:</strong>
-                    <p>{review.admin_response}</p>
+                  <div
+                    className="p-3 rounded-r-lg mb-3 border-l-[3px] border-l-[var(--primary)]"
+                    style={{ background: 'rgba(37, 99, 235, 0.05)' }}
+                  >
+                    <strong className="block text-[var(--primary)] mb-1 text-[13px]">
+                      Ответ магазина:
+                    </strong>
+                    <p className="m-0 text-sm" style={{ color: 'var(--text)' }}>
+                      {review.admin_response}
+                    </p>
                   </div>
                 )}
 
-                <div className="reviews__item-footer">
-                  <span className="reviews__helpful-label">Отзыв полезен?</span>
+                <div
+                  className="flex items-center gap-3 pt-3 border-t"
+                  style={{ borderColor: 'var(--border)' }}
+                >
+                  <span className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                    Отзыв полезен?
+                  </span>
 
                   <button
-                    className={`reviews__helpful-btn ${myVote === true ? "is-selected" : ""}`}
+                    className={`py-1 px-3 rounded-md text-[13px] cursor-pointer transition-all duration-200 hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                      myVote === true ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10" : ""
+                    }`}
+                    style={{
+                      background: myVote === true ? 'color-mix(in srgb, var(--primary) 10%, transparent)' : 'var(--bg)',
+                      border: `1px solid ${myVote === true ? 'var(--primary)' : 'var(--border)'}`,
+                      color: myVote === true ? 'var(--primary)' : 'var(--muted)',
+                    }}
                     onClick={() => handleHelpful(review.id, true)}
                     disabled={isPending}
                     type="button"
@@ -508,7 +611,14 @@ export default function ProductReviews({ productId, productSlug }) {
                   </button>
 
                   <button
-                    className={`reviews__helpful-btn ${myVote === false ? "is-selected" : ""}`}
+                    className={`py-1 px-3 rounded-md text-[13px] cursor-pointer transition-all duration-200 hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                      myVote === false ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10" : ""
+                    }`}
+                    style={{
+                      background: myVote === false ? 'color-mix(in srgb, var(--primary) 10%, transparent)' : 'var(--bg)',
+                      border: `1px solid ${myVote === false ? 'var(--primary)' : 'var(--border)'}`,
+                      color: myVote === false ? 'var(--primary)' : 'var(--muted)',
+                    }}
                     onClick={() => handleHelpful(review.id, false)}
                     disabled={isPending}
                     type="button"

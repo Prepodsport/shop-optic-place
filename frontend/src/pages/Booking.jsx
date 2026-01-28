@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { api } from "../api.js";
-import "./Booking.css";
 
 function toIsoWithLocalTz(datetimeLocalValue) {
   // datetimeLocalValue: "2026-01-16T14:00"
@@ -90,26 +89,52 @@ export default function Booking() {
   }
 
   return (
-    <div className="booking">
-      <div className="booking__container">
-        <div className="booking__header">
-          <h1 className="booking__title">Онлайн-запись</h1>
+    <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
+      <div className="max-w-[1280px] mx-auto">
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+          <h1
+            className="text-[32px] md:text-[26px] font-bold m-0"
+            style={{ color: 'var(--text)' }}
+          >
+            Онлайн-запись
+          </h1>
         </div>
 
-        <div className="booking__note">
-          <div className="booking__note-title">Как это работает</div>
-          <p className="booking__muted">
+        <div
+          className="rounded-2xl p-5 md:p-6 border mb-5"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+        >
+          <div
+            className="text-[16px] font-bold mb-2"
+            style={{ color: 'var(--text)' }}
+          >
+            Как это работает
+          </div>
+          <p
+            className="text-[15px] leading-[1.7] m-0"
+            style={{ color: 'var(--muted)' }}
+          >
             Выберите специалиста, дату и время. Мы создадим заявку и передадим её в CRM.
             Формат даты отправляется автоматически — вводить ISO вручную не нужно.
           </p>
         </div>
 
-        <form className="booking__form" onSubmit={submit}>
-          <div className="booking__grid">
-            <label className="booking__field">
-              <span className="booking__label">Специалист</span>
+        <form
+          className="rounded-2xl p-6 border"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+          onSubmit={submit}
+        >
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+            <label className="flex flex-col gap-2">
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: 'var(--muted)' }}
+              >
+                Специалист
+              </span>
               <select
-                className="booking__input"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 value={service_type}
                 onChange={(e) => setType(e.target.value)}
               >
@@ -118,40 +143,64 @@ export default function Booking() {
               </select>
             </label>
 
-            <label className="booking__field">
-              <span className="booking__label">Дата и время</span>
+            <label className="flex flex-col gap-2">
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: 'var(--muted)' }}
+              >
+                Дата и время
+              </span>
               <input
-                className="booking__input"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 type="datetime-local"
                 value={desired_dt_local}
                 onChange={(e) => setDtLocal(e.target.value)}
               />
             </label>
 
-            <label className="booking__field booking__field--full">
-              <span className="booking__label">ФИО</span>
+            <label className="flex flex-col gap-2 col-span-full">
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: 'var(--muted)' }}
+              >
+                ФИО
+              </span>
               <input
-                className="booking__input"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 placeholder="Иванов Иван Иванович"
                 value={full_name}
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
 
-            <label className="booking__field">
-              <span className="booking__label">Телефон</span>
+            <label className="flex flex-col gap-2">
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: 'var(--muted)' }}
+              >
+                Телефон
+              </span>
               <input
-                className="booking__input"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 placeholder="+7 (999) 000-00-00"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
             </label>
 
-            <label className="booking__field">
-              <span className="booking__label">Email</span>
+            <label className="flex flex-col gap-2">
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: 'var(--muted)' }}
+              >
+                Email
+              </span>
               <input
-                className="booking__input"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 type="email"
                 placeholder="name@example.com"
                 value={email}
@@ -159,10 +208,16 @@ export default function Booking() {
               />
             </label>
 
-            <label className="booking__field booking__field--full">
-              <span className="booking__label">Комментарий</span>
+            <label className="flex flex-col gap-2 col-span-full">
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: 'var(--muted)' }}
+              >
+                Комментарий
+              </span>
               <textarea
-                className="booking__input booking__textarea"
+                className="w-full py-3 px-3.5 rounded-xl border text-[15px] transition-all duration-200 resize-y min-h-[110px] focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 placeholder="Например: есть рецепт/линзы, хочу проверить зрение"
                 rows={4}
                 value={comment}
@@ -171,24 +226,32 @@ export default function Booking() {
             </label>
           </div>
 
-          <div className="booking__actions">
+          <div className="grid gap-3 mt-4.5">
             <button
-              className="booking__btn booking__btn--primary"
+              className="py-3.5 px-4.5 bg-[var(--primary)] border border-[var(--primary)] rounded-xl text-white text-[15px] font-bold cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 disabled:opacity-70 disabled:cursor-not-allowed"
               type="submit"
               disabled={submitting}
             >
               {submitting ? "Отправляем..." : "Отправить"}
             </button>
 
-            {status.text ? (
-              <div className={`booking__status booking__status--${status.type}`}>
+            {status.text && (
+              <div
+                className="py-3 px-3.5 rounded-xl border text-[14px] leading-relaxed"
+                style={{
+                  background: 'var(--bg)',
+                  borderColor: status.type === 'success'
+                    ? 'rgba(34, 197, 94, 0.35)'
+                    : status.type === 'error'
+                    ? 'rgba(239, 68, 68, 0.35)'
+                    : 'var(--border)',
+                  color: 'var(--text)',
+                }}
+              >
                 {status.text}
               </div>
-            ) : null}
+            )}
           </div>
-
-          {/* полезно для отладки: что реально уходит на API */}
-          {/* <div className="booking__muted">ISO: {desired_datetime}</div> */}
         </form>
       </div>
     </div>

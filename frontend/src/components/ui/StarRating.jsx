@@ -1,5 +1,3 @@
-import "./StarRating.css";
-
 /**
  * Компонент для отображения рейтинга звездами
  * @param {number} rating - Средний рейтинг (от 0 до 5)
@@ -12,7 +10,6 @@ export default function StarRating({ rating = 0, count = 0, size = 'small', show
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
 
-  // Размеры звезд
   const sizes = {
     small: 14,
     medium: 18,
@@ -20,10 +17,14 @@ export default function StarRating({ rating = 0, count = 0, size = 'small', show
   };
   const starSize = sizes[size] || sizes.small;
 
-  // Создаем массив звезд
+  const countSizes = {
+    small: 'text-xs',
+    medium: 'text-sm',
+    large: 'text-base',
+  };
+
   for (let i = 0; i < 5; i++) {
     if (i < fullStars) {
-      // Полная звезда
       stars.push(
         <svg
           key={i}
@@ -38,7 +39,6 @@ export default function StarRating({ rating = 0, count = 0, size = 'small', show
         </svg>
       );
     } else if (i === fullStars && hasHalfStar) {
-      // Половина звезды
       stars.push(
         <svg
           key={i}
@@ -62,7 +62,6 @@ export default function StarRating({ rating = 0, count = 0, size = 'small', show
         </svg>
       );
     } else {
-      // Пустая звезда
       stars.push(
         <svg
           key={i}
@@ -80,10 +79,10 @@ export default function StarRating({ rating = 0, count = 0, size = 'small', show
   }
 
   return (
-    <div className={`star-rating star-rating--${size}`}>
-      <div className="star-rating__stars">{stars}</div>
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-0.5">{stars}</div>
       {showCount && count > 0 && (
-        <span className="star-rating__count">
+        <span className={`${countSizes[size]} font-normal`} style={{ color: 'var(--muted)' }}>
           ({count})
         </span>
       )}
