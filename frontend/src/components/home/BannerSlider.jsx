@@ -44,7 +44,7 @@ export default function BannerSlider() {
 
   if (loading) {
     return (
-      <div className="relative w-full max-w-[1280px] mx-auto rounded-2xl md:rounded-xl overflow-hidden" style={{ background: 'var(--card)' }}>
+      <div className="relative w-full max-w-[1600px] mx-auto rounded-2xl md:rounded-xl overflow-hidden" style={{ background: 'var(--card)' }}>
         <div
           className="w-full aspect-[21/9] lg:aspect-video md:aspect-[4/3] sm:aspect-square animate-shimmer"
           style={{
@@ -64,7 +64,7 @@ export default function BannerSlider() {
 
   return (
     <div
-      className="relative w-full max-w-[1280px] mx-auto rounded-2xl md:rounded-xl overflow-hidden group"
+      className="relative w-full max-w-[1600px] mx-auto rounded-2xl md:rounded-xl overflow-hidden group"
       style={{ background: 'var(--card)' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}

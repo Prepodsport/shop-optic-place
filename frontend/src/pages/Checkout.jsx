@@ -64,7 +64,7 @@ export default function Checkout() {
       <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
         <div className="max-w-[1200px] mx-auto">
           <div
-            className="text-center py-20 px-5 rounded-2xl border"
+            className="flex flex-col items-center py-20 px-5 rounded-2xl border"
             style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
           >
             <svg
@@ -104,7 +104,7 @@ export default function Checkout() {
       <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
         <div className="max-w-[1200px] mx-auto">
           <div
-            className="text-center py-15 px-5 rounded-2xl border"
+            className="flex flex-col items-center py-15 px-5 rounded-2xl border"
             style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
           >
             <div className="mb-6">

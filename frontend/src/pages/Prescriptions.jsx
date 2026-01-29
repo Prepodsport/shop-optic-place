@@ -174,7 +174,7 @@ export default function Prescriptions() {
   if (loading) {
     return (
       <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
-        <div className="max-w-[1000px] mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           <div className="text-center py-15 px-5" style={{ color: 'var(--muted)' }}>
             Загрузка...
           </div>
@@ -185,7 +185,7 @@ export default function Prescriptions() {
 
   return (
     <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
-      <div className="max-w-[1000px] mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         <div className="flex justify-between items-start gap-5 mb-8 md:flex-col md:items-stretch">
           <div>
             <Link
@@ -200,25 +200,15 @@ export default function Prescriptions() {
               Личный кабинет
             </Link>
             <h1
-              className="text-[32px] md:text-[26px] font-bold m-0 mb-2"
+              className="text-[32px] text-center md:text-[26px] font-bold m-0 mb-2"
               style={{ color: 'var(--text)' }}
             >
               Мои рецепты
             </h1>
-            <p className="text-[15px] m-0" style={{ color: 'var(--muted)' }}>
+            <p className="text-[15px] text-center m-0" style={{ color: 'var(--muted)' }}>
               Сохраните ваши оптические рецепты для быстрого заказа линз и очков
             </p>
           </div>
-          <button
-            className="py-3 px-6 bg-[var(--primary)] text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-colors duration-200 whitespace-nowrap hover:bg-blue-700 flex items-center gap-2"
-            onClick={openAddForm}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Добавить рецепт
-          </button>
         </div>
 
         {error && (
@@ -257,12 +247,16 @@ export default function Prescriptions() {
             <p className="text-[15px] m-0 mb-6" style={{ color: 'var(--muted)' }}>
               Добавьте ваш первый оптический рецепт для удобного заказа
             </p>
-            <button
-              className="py-3 px-6 bg-[var(--primary)] text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-colors duration-200 hover:bg-blue-700"
-              onClick={openAddForm}
-            >
-              Добавить рецепт
-            </button>
+          <button
+            className="py-3 px-6 bg-[var(--primary)] text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-colors duration-200 whitespace-nowrap hover:bg-blue-700 flex items-center gap-2"
+            onClick={openAddForm}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Добавить рецепт
+          </button>
           </div>
         ) : (
           <div className="flex flex-col gap-4">

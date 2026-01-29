@@ -26,8 +26,8 @@ export default function ForgotPassword() {
   if (success) {
     return (
       <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
-        <div className="max-w-[1280px] mx-auto">
-          <div className="text-center py-8 px-6">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="flex flex-col items-center py-8 px-6">
             <svg className="text-green-500 mb-4" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
             </svg>
@@ -53,7 +53,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
-      <div className="max-w-[1280px] mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         <h1
           className="text-[32px] md:text-[26px] font-bold max-w-[640px] mx-auto mb-8 m-0"
           style={{ color: 'var(--text)' }}

@@ -147,7 +147,7 @@ export default function LensCalculator() {
     prescription.os.cyl !== "";
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 py-8">
       <div className="flex items-center gap-2 text-[14px] mb-6" style={{ color: 'var(--muted)' }}>
         <Link to="/" className="no-underline hover:underline" style={{ color: 'var(--muted)' }}>Главная</Link>
         <span>/</span>

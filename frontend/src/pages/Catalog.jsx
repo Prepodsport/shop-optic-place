@@ -347,7 +347,7 @@ export default function Catalog() {
 
   return (
     <div className="py-5 pb-16">
-      <div className="max-w-[1400px] mx-auto px-5">
+      <div className="max-w-[1600px] mx-auto px-5">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 py-2.5 pb-5 text-sm flex-wrap" style={{ color: 'var(--muted)' }}>
           <Link to="/" className="text-[var(--primary)] no-underline transition-colors duration-200 hover:underline">

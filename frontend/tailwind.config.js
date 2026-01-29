@@ -21,7 +21,7 @@ export default {
         sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
       },
       maxWidth: {
-        'container': '1280px',
+        'container': '1600px',
       },
       borderRadius: {
         'card': '14px',

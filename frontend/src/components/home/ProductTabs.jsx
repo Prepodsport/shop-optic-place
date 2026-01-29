@@ -55,7 +55,7 @@ export default function ProductTabs({ title = 'Наши товары', limit = 8
   };
 
   return (
-    <section className="max-w-[1280px] mx-auto px-4">
+    <section className="max-w-[1600px] mx-auto px-4">
       <div className="flex items-center justify-between gap-4 mb-8">
         <h2 className="m-0 text-[28px] md:text-2xl sm:text-xl font-bold shrink-0" style={{ color: 'var(--text)' }}>
           {title}

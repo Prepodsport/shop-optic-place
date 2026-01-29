@@ -44,7 +44,7 @@ export default function CmsPage({
   }, [slug]);
 
   const isCompact = variant === "compact";
-  const containerMaxWidth = isCompact ? "max-w-[800px]" : "max-w-[1280px]";
+  const containerMaxWidth = isCompact ? "max-w-[800px]" : "max-w-[1600px]";
 
   if (loading)
     return (

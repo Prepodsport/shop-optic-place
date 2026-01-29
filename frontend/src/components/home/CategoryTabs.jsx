@@ -41,7 +41,7 @@ export default function CategoryTabs({ title = "Категории товаро�
 
   if (loading) {
     return (
-      <section className="max-w-[1280px] mx-auto px-4">
+      <section className="max-w-[1600px] mx-auto px-4">
         <h2
           className="m-0 mb-8 md:mb-6 text-[28px] md:text-2xl sm:text-xl font-bold"
           style={{ color: "var(--text)" }}
@@ -70,7 +70,7 @@ export default function CategoryTabs({ title = "Категории товаро�
   if (categories.length === 0) return null;
 
   return (
-    <section className="max-w-[1280px] mx-auto px-4">
+    <section className="max-w-[1600px] mx-auto px-4">
       <h2
         className="m-0 mb-8 md:mb-6 text-[28px] md:text-2xl sm:text-xl font-bold"
         style={{ color: "var(--text)" }}

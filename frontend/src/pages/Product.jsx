@@ -230,7 +230,7 @@ export default function Product() {
 
   if (loading) {
     return (
-      <div className="max-w-[1280px] mx-auto px-4 py-10">
+      <div className="max-w-[1600px] mx-auto px-4 py-10">
         <div className="text-center py-16 px-5">
           <div
             className="w-10 h-10 border-[3px] border-[var(--border)] border-t-[var(--primary)] rounded-full animate-spin mx-auto mb-5"
@@ -244,7 +244,7 @@ export default function Product() {
 
   if (!product) {
     return (
-      <div className="max-w-[1280px] mx-auto px-4 py-10">
+      <div className="max-w-[1600px] mx-auto px-4 py-10">
         <div className="text-center py-16 px-5">
           <h2 className="mb-4" style={{ color: "var(--text)" }}>
             Товар не найден
@@ -261,7 +261,7 @@ export default function Product() {
   }
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 py-6">
+    <div className="max-w-[1600px] mx-auto px-4 py-6">
       {/* breadcrumbs */}
       <div className="flex items-center gap-2 py-4 text-sm flex-wrap" style={{ color: "var(--muted)" }}>
         <Link to="/" className="text-[var(--primary)] no-underline hover:underline">

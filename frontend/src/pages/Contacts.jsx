@@ -79,7 +79,7 @@ export default function Contacts() {
 
   return (
     <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
-      <div className="max-w-[1280px] mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         <h1
           className="text-[32px] md:text-[26px] font-bold m-0 mb-10"
           style={{ color: 'var(--text)' }}

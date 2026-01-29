@@ -99,7 +99,7 @@ export default function MegaMenu() {
         top: "calc(var(--top-offset, 0px) + var(--header-height, 0px))",
       }}
     >
-      <div className="max-w-[1280px] mx-auto px-4 flex items-center justify-between">
+      <div className="max-w-[1600px] mx-auto px-4 flex items-center justify-between">
         {/* Кнопка каталога */}
         <div
           className="relative shrink-0"

@@ -13,7 +13,7 @@ export default function Cart() {
 
   return (
     <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
-      <div className="max-w-[1280px] mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <h1 className="text-[32px] md:text-[26px] font-bold m-0" style={{ color: 'var(--text)' }}>
             Корзина
@@ -32,7 +32,7 @@ export default function Cart() {
 
         {isEmpty ? (
           <div
-            className="text-center py-20 px-5 rounded-2xl border"
+            className="flex flex-col items-center  py-20 px-5 rounded-2xl border"
             style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
           >
             <svg

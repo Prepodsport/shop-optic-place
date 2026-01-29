@@ -112,7 +112,7 @@ const Header = forwardRef(function Header(_, ref) {
         top: 'var(--top-offset, 0px)'
       }}
     >
-      <div className="max-w-[1280px] mx-auto px-4 flex items-center justify-between gap-6 md:gap-3">
+      <div className="max-w-[1600px] mx-auto px-4 flex items-center justify-between gap-6 md:gap-3">
         {/* Логотип */}
         <Link
           to="/"

@@ -90,8 +90,8 @@ export default function Booking() {
 
   return (
     <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
-      <div className="max-w-[1280px] mx-auto">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+      <div className="max-w-[1600px] mx-auto">
+        <div className="flex items-center justify-center flex-wrap gap-4 mb-8">
           <h1
             className="text-[32px] md:text-[26px] font-bold m-0"
             style={{ color: 'var(--text)' }}
@@ -105,13 +105,13 @@ export default function Booking() {
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           <div
-            className="text-[16px] font-bold mb-2"
+            className="text-[16px] text-center font-bold mb-2"
             style={{ color: 'var(--text)' }}
           >
             Как это работает
           </div>
           <p
-            className="text-[15px] leading-[1.7] m-0"
+            className="text-[15px] text-center leading-[1.7] m-0"
             style={{ color: 'var(--muted)' }}
           >
             Выберите специалиста, дату и время. Мы создадим заявку и передадим её в CRM.

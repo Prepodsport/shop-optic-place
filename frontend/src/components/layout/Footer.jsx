@@ -8,7 +8,7 @@ export default function Footer() {
       className="mt-auto pt-12 pb-6 border-t sm:pt-8 sm:pb-5"
       style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
     >
-      <div className="max-w-[1280px] mx-auto px-4">
+      <div className="max-w-[1600px] mx-auto px-4">
         <div className="grid grid-cols-4 gap-10 mb-10 lg:grid-cols-2 lg:gap-8 sm:grid-cols-1 sm:gap-6 sm:mb-6">
           {/* О компании */}
           <div>
@@ -145,7 +145,7 @@ export default function Footer() {
 
         {/* Нижняя часть */}
         <div
-          className="flex justify-between items-center pt-6 border-t sm:flex-col sm:gap-4 sm:text-center"
+          className="flex justify-between pt-6 border-t sm:flex-col sm:gap-4 sm:text-center"
           style={{ borderColor: 'var(--border)' }}
         >
           <p className="text-[13px] m-0" style={{ color: 'var(--muted)' }}>

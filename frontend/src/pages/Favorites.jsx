@@ -112,7 +112,7 @@ export default function Favorites() {
 
   return (
     <div className="pt-10 md:pt-8 px-4 pb-16 md:pb-10">
-      <div className="max-w-[1280px] mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <h1 className="text-[32px] md:text-[26px] font-bold m-0" style={{ color: "var(--text)" }}>
             Избранное

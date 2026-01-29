@@ -187,7 +187,7 @@ export default function LensReminders() {
 
   if (loading) {
     return (
-      <div className="max-w-[1280px] mx-auto px-4">
+      <div className="max-w-[1600px] mx-auto px-4">
         <div className="text-center py-15" style={{ color: 'var(--muted)' }}>
           Загрузка...
         </div>
@@ -196,7 +196,7 @@ export default function LensReminders() {
   }
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4">
+    <div className="max-w-[1600px] mx-auto px-4">
       {/* Хлебные крошки */}
       <div className="flex items-center gap-2 py-4 text-sm" style={{ color: 'var(--muted)' }}>
         <Link to="/" className="hover:text-[var(--primary)] transition-colors">Главная</Link>
@@ -208,24 +208,24 @@ export default function LensReminders() {
 
       <div className="py-8">
         {/* Заголовок */}
-        <div className="flex justify-between items-start gap-5 mb-8 md:flex-col">
-          <div>
-            <h1 className="text-[28px] font-bold m-0 mb-2" style={{ color: 'var(--text)' }}>
-              Напоминания о замене линз
-            </h1>
-            <p className="text-[15px] m-0" style={{ color: 'var(--muted)' }}>
-              Создайте напоминания, чтобы не забывать менять линзы вовремя
-            </p>
+          <div className="flex flex-col items-center text-center gap-5 mb-8">
+            <div>
+              <h1 className="text-[28px] font-bold m-0 mb-2" style={{ color: 'var(--text)' }}>
+                Напоминания о замене линз
+              </h1>
+              <p className="text-[15px] m-0" style={{ color: 'var(--muted)' }}>
+                Создайте напоминания, чтобы не забывать менять линзы вовремя
+              </p>
+            </div>
+            {!showForm && (
+              <button
+                className="py-2.5 px-5 bg-[var(--primary)] border border-[var(--primary)] rounded-lg text-white text-[15px] font-semibold cursor-pointer transition-colors hover:bg-blue-700 hover:border-blue-700"
+                onClick={() => setShowForm(true)}
+              >
+                Добавить напоминание
+              </button>
+            )}
           </div>
-          {!showForm && (
-            <button
-              className="py-2.5 px-5 bg-[var(--primary)] border border-[var(--primary)] rounded-lg text-white text-[15px] font-semibold cursor-pointer transition-colors hover:bg-blue-700 hover:border-blue-700"
-              onClick={() => setShowForm(true)}
-            >
-              Добавить напоминание
-            </button>
-          )}
-        </div>
 
         {/* Форма */}
         {showForm && (
