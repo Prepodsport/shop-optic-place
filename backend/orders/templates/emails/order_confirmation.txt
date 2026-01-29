@@ -1,0 +1,33 @@
+Здравствуйте, {{ order.shipping_name|default:"уважаемый покупатель" }}!
+
+Спасибо за ваш заказ в {{ site_name }}! Мы получили его и начали обработку.
+
+ЗАКАЗ #{{ order.id }}
+
+Товары:
+{% for i in items %}
+- {{ i.name }}{% if i.attrs %} ({{ i.attrs }}){% endif %} — {{ i.qty }} шт. × {{ i.unit_price }} ₽ = {{ i.line_total }} ₽
+{% endfor %}
+
+Сумма товаров: {{ order.total }} ₽{% if order.discount_total > 0 %}
+Скидка: -{{ order.discount_total }} ₽{% endif %}
+Доставка: {{ order.shipping_cost }} ₽
+ИТОГО: {{ order.grand_total }} ₽
+
+Способ доставки: {{ shipping_method_name }}{% if order.shipping_address %}
+Адрес: {{ order.shipping_city }}, {{ order.shipping_address }}{% if order.shipping_postal_code %}, {{ order.shipping_postal_code }}{% endif %}{% endif %}
+Способ оплаты: {{ payment_method_name }}
+
+Телефон: {{ order.phone }}
+Email: {{ order.email }}{% if order.customer_note %}
+Комментарий: {{ order.customer_note }}{% endif %}
+
+{% if order_url %}Посмотреть заказ: {{ order_url }}{% endif %}
+
+Поддержка:
+Email: {{ support_email }}
+Телефон: {{ support_phone }}{% if support_url %}
+Сайт поддержки: {{ support_url }}{% endif %}
+
+С уважением,
+Команда {{ site_name }}

@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     # Local apps
     "accounts",
     "catalog",
-    "orders",
+    "orders.apps.OrdersConfig",
     "appointments",
     "integrations",
     "content",
@@ -232,6 +232,7 @@ LOGGING = {
     "loggers": {
         "orders": {"handlers": ["console"], "level": "INFO"},
         "accounts": {"handlers": ["console"], "level": "INFO"},
+        "emails": {"handlers": ["console"], "level": "INFO"},
     },
 }
 
@@ -269,10 +270,25 @@ CSP_IMG_SRC = ("'self'", "data:", "https:")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
 
 # Email settings (для уведомлений)
-EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-EMAIL_HOST = env("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(env("EMAIL_PORT", "587"))
-EMAIL_USE_TLS = env("EMAIL_USE_TLS", "1") == "1"
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "OpticPlace <noreply@opticplace.ru>")
+EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+
+EMAIL_HOST = env("EMAIL_HOST", "smtp.mail.ru")
+EMAIL_PORT = int(env("EMAIL_PORT", "465"))
+
+# Для smtp.mail.ru:465 используется SSL
+EMAIL_USE_SSL = env("EMAIL_USE_SSL", "1") == "1"
+EMAIL_USE_TLS = env("EMAIL_USE_TLS", "0") == "1"  # ДОЛЖНО быть 0 при SSL/465
+
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")        # например: noreply@opticplace.ru или ваш_ящик@mail.ru
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")  # “пароль приложения” Mail.ru
+
+# Лучше, чтобы From совпадал с EMAIL_HOST_USER (иначе спам/отклонения)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", f"OpticPlace <{EMAIL_HOST_USER}>")
+
+# (опционально) таймаут
+EMAIL_TIMEOUT = int(env("EMAIL_TIMEOUT", "20"))
+
+SITE_URL = env("SITE_URL", FRONTEND_URL).rstrip("/") # адрес фронта/сайта
+SUPPORT_EMAIL = env("SUPPORT_EMAIL", "info@opticplace.ru")
+SUPPORT_PHONE = env("SUPPORT_PHONE", "+7 (495) 123-45-67")
+SUPPORT_PHONE_TEL = env("SUPPORT_PHONE_TEL", "+74951234567")  # для tel:

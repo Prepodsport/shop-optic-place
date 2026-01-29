@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ site_name }} — Заказ №{{ order.id }}</title>
+</head>
+
+<body style="margin:0;padding:0;background:#f6f7f9;">
+  <!-- Preheader (скрытый текст для превью в почтовиках) -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Заказ №{{ order.id }} принят. Итого: {{ order.grand_total }} ₽.
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7f9;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+
+        <!-- Container -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="padding:20px 24px;border-bottom:1px solid #eee;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="left" style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;color:#111;">
+                    {{ site_name }}
+                  </td>
+                  <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#666;">
+                    Заказ №{{ order.id }}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td style="padding:18px 24px 6px 24px;font-family:Arial,Helvetica,sans-serif;color:#111;">
+              <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
+                Здравствуйте, <b>{{ order.shipping_name|default:"уважаемый покупатель" }}</b>!
+              </p>
+              <p style="margin:0;font-size:14px;line-height:1.6;color:#444;">
+                Спасибо за ваш заказ — мы начали обработку.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Summary chips -->
+          <tr>
+            <td style="padding:14px 24px 6px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6;border-radius:12px;">
+                <tr>
+                  <td style="padding:12px 14px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#333;">
+                    <b>Заказ:</b> №{{ order.id }}
+                  </td>
+                  <td align="right" style="padding:12px 14px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#333;">
+                    <b>Итого:</b> {{ order.grand_total }} ₽
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Items title -->
+          <tr>
+            <td style="padding:14px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif;">
+              <div style="font-size:13px;color:#666;">Товары</div>
+            </td>
+          </tr>
+
+          <!-- Items table -->
+          <tr>
+            <td style="padding:0 24px 8px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #eee;border-radius:12px;overflow:hidden;">
+                <tr style="background:#fafafa;">
+                  <td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#777;border-bottom:1px solid #eee;">
+                    Позиция
+                  </td>
+                  <td align="center" style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#777;border-bottom:1px solid #eee;white-space:nowrap;">
+                    Кол-во
+                  </td>
+                  <td align="right" style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#777;border-bottom:1px solid #eee;white-space:nowrap;">
+                    Цена
+                  </td>
+                  <td align="right" style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#777;border-bottom:1px solid #eee;white-space:nowrap;">
+                    Сумма
+                  </td>
+                </tr>
+
+                {% for i in items %}
+                <tr>
+                  <td style="padding:12px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #f0f0f0;">
+                    <div style="font-size:14px;font-weight:600;color:#111;margin:0;">
+                      {{ i.name }}
+                    </div>
+                    {% if i.attrs %}
+                      <div style="font-size:12px;color:#777;margin-top:4px;">
+                        {{ i.attrs }}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td align="center" style="padding:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;border-bottom:1px solid #f0f0f0;white-space:nowrap;">
+                    {{ i.qty }}
+                  </td>
+                  <td align="right" style="padding:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;border-bottom:1px solid #f0f0f0;white-space:nowrap;">
+                    {{ i.unit_price }} ₽
+                  </td>
+                  <td align="right" style="padding:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:#111;border-bottom:1px solid #f0f0f0;white-space:nowrap;">
+                    {{ i.line_total }} ₽
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+
+          <!-- Totals -->
+          <tr>
+            <td style="padding:10px 24px 6px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #eee;border-radius:12px;">
+                <tr>
+                  <td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#444;">Сумма товаров</td>
+                  <td align="right" style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#111;white-space:nowrap;">
+                    {{ order.total }} ₽
+                  </td>
+                </tr>
+
+                {% if order.discount_total > 0 %}
+                <tr>
+                  <td style="padding:0 12px 10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#444;">Скидка</td>
+                  <td align="right" style="padding:0 12px 10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#111;white-space:nowrap;">
+                    -{{ order.discount_total }} ₽
+                  </td>
+                </tr>
+                {% endif %}
+
+                <tr>
+                  <td style="padding:0 12px 10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#444;">Доставка</td>
+                  <td align="right" style="padding:0 12px 10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#111;white-space:nowrap;">
+                    {{ order.shipping_cost }} ₽
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:#111;border-top:1px solid #eee;">
+                    Итого
+                  </td>
+                  <td align="right" style="padding:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:#111;border-top:1px solid #eee;white-space:nowrap;">
+                    {{ order.grand_total }} ₽
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Delivery / Payment / Contacts -->
+          <tr>
+            <td style="padding:10px 24px 6px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #eee;border-radius:12px;">
+                <tr>
+                  <td style="padding:12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:#444;">
+                    <div style="margin:0 0 6px 0;">
+                      <b>Доставка:</b> {{ shipping_method_name }}
+                    </div>
+
+                    {% if order.shipping_address %}
+                    <div style="margin:0 0 6px 0;">
+                      <b>Адрес:</b> {{ order.shipping_city }}, {{ order.shipping_address }}{% if order.shipping_postal_code %}, {{ order.shipping_postal_code }}{% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div style="margin:0 0 6px 0;">
+                      <b>Оплата:</b> {{ payment_method_name }}
+                    </div>
+
+                    <div style="margin:0;">
+                      <b>Контакты:</b> {{ order.phone }} · {{ order.email }}
+                    </div>
+
+                    {% if order.customer_note %}
+                    <div style="margin-top:8px;">
+                      <b>Комментарий:</b> {{ order.customer_note }}
+                    </div>
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Button -->
+          {% if order_url %}
+          <tr>
+            <td style="padding:14px 24px 6px 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td bgcolor="#111111" style="border-radius:12px;">
+                    <a href="{{ order_url }}"
+                       style="display:inline-block;padding:12px 16px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">
+                      Посмотреть заказ
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          <!-- Support -->
+          <tr>
+            <td style="padding:10px 24px 22px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#666;">
+              Если у вас возникли вопросы:
+              <a href="mailto:{{ support_email }}" style="color:#111;text-decoration:none;">{{ support_email }}</a>
+              · <a href="tel:{{ support_phone_tel }}" style="color:#111;text-decoration:none;">{{ support_phone }}</a>
+              {% if support_url %}· <a href="{{ support_url }}" style="color:#111;text-decoration:none;">Сайт поддержки</a>{% endif %}
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;">
+          <tr>
+            <td align="center" style="padding:12px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#888;">
+              Это письмо сформировано автоматически.
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

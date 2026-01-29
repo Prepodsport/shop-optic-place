@@ -1,0 +1,28 @@
+Здравствуйте, {{ order.shipping_name|default:"уважаемый покупатель" }}!
+
+Отличные новости — ваш заказ в {{ site_name }} отправлен.
+
+ЗАКАЗ #{{ order.id }}
+
+{% if order.tracking_number %}
+Номер для отслеживания: {{ order.tracking_number }}
+{% endif %}
+
+Способ доставки: {{ shipping_method_name }}{% if order.shipping_method == "pickup" %}
+
+Ваш заказ готов к выдаче в пункте самовывоза.
+{% elif order.shipping_address %}
+Адрес доставки: {{ order.shipping_city }}, {{ order.shipping_address }}{% if order.shipping_postal_code %}, {{ order.shipping_postal_code }}{% endif %}
+{% endif %}
+
+{% if order_url %}Посмотреть заказ: {{ order_url }}{% endif %}
+
+Поддержка:
+Email: {{ support_email }}
+Телефон: {{ support_phone }}{% if support_url %}
+Сайт поддержки: {{ support_url }}{% endif %}
+
+Спасибо, что выбрали {{ site_name }}!
+
+С уважением,
+Команда {{ site_name }}
