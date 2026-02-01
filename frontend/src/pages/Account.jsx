@@ -18,6 +18,11 @@ export default function Account() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Состояния для пагинации и поиска
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const ordersPerPage = 5;
+
   const loggedIn = Boolean(getTokens().access);
 
   useEffect(() => {
@@ -113,6 +118,132 @@ export default function Account() {
     return colors[status] || "#6b7280";
   };
 
+  // Фильтрация заказов по поисковому запросу
+  const filteredOrders = orders.filter(order => {
+    if (!searchTerm.trim()) return true;
+
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      order.id.toString().includes(searchTerm) ||
+      (order.status_display && order.status_display.toLowerCase().includes(searchLower)) ||
+      order.grand_total.toString().includes(searchTerm) ||
+      order.items_count.toString().includes(searchTerm)
+    );
+  });
+
+  // Пагинация
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+
+  // Обработчик изменения страницы
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({
+      top: document.querySelector('.rounded-2xl.p-6.border').offsetTop - 20,
+      behavior: 'smooth'
+    });
+  };
+
+  // Компонент пагинации
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
+        {/* Кнопка "Назад" */}
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="flex items-center justify-center w-10 h-10 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:bg-[var(--bg)]"
+          style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+          aria-label="Предыдущая страница"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        {/* Первая страница */}
+        {startPage > 1 && (
+          <>
+            <button
+              onClick={() => handlePageChange(1)}
+              className="flex items-center justify-center w-10 h-10 rounded-lg border transition-all duration-200 hover:bg-[var(--bg)]"
+              style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+            >
+              1
+            </button>
+            {startPage > 2 && <span className="px-2" style={{ color: 'var(--muted)' }}>...</span>}
+          </>
+        )}
+
+        {/* Номера страниц */}
+        {pageNumbers.map(number => (
+          <button
+            key={number}
+            onClick={() => handlePageChange(number)}
+            className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 ${
+              currentPage === number 
+                ? 'bg-[var(--primary)] text-white' 
+                : 'border hover:bg-[var(--bg)]'
+            }`}
+            style={currentPage !== number ? { borderColor: 'var(--border)', color: 'var(--text)' } : {}}
+          >
+            {number}
+          </button>
+        ))}
+
+        {/* Последняя страница */}
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2" style={{ color: 'var(--muted)' }}>...</span>}
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              className="flex items-center justify-center w-10 h-10 rounded-lg border transition-all duration-200 hover:bg-[var(--bg)]"
+              style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        {/* Кнопка "Вперед" */}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="flex items-center justify-center w-10 h-10 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:bg-[var(--bg)]"
+          style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+          aria-label="Следующая страница"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        {/* Информация о странице */}
+        <div className="text-sm ml-4" style={{ color: 'var(--muted)' }}>
+          Страница {currentPage} из {totalPages}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="py-10 md:py-8 px-4 pb-15 md:pb-10">
       <div className="max-w-[1600px] mx-auto">
@@ -121,18 +252,17 @@ export default function Account() {
             Личный кабинет
           </h1>
           {loggedIn && (
-            <button
-              className="flex items-center gap-2 py-2.5 px-4 bg-transparent border border-[var(--border)] rounded-[10px] text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-red-100 hover:border-red-200 hover:text-red-600"
-              style={{ color: 'var(--text)' }}
-              onClick={handleLogout}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              Выйти
-            </button>
+        <button
+          className="flex items-center gap-2 py-2.5 px-4 bg-transparent border border-[var(--border)] rounded-[10px] text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 dark:hover:bg-red-500/20 dark:hover:border-red-500/30 dark:hover:text-red-400"
+          style={{ color: 'var(--text)' }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Выйти
+        </button>
           )}
         </div>
 
@@ -334,8 +464,30 @@ export default function Account() {
               className="rounded-2xl p-6 border"
               style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
             >
-              <div className="text-lg font-bold m-0 mb-4" style={{ color: 'var(--text)' }}>
-                История заказов
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div className="text-lg font-bold m-0" style={{ color: 'var(--text)' }}>
+                  История заказов {filteredOrders.length !== orders.length ?
+                    `(${filteredOrders.length} из ${orders.length})` :
+                    `(${orders.length})`}
+                </div>
+
+                {orders.length > 0 && (
+                  <input
+                    type="text"
+                    placeholder="Поиск по номеру или статусу..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1); // Сброс на первую страницу при поиске
+                    }}
+                    className="p-2.5 rounded-lg border text-sm w-full md:w-64"
+                    style={{
+                      borderColor: 'var(--border)',
+                      background: 'var(--bg)',
+                      color: 'var(--text)'
+                    }}
+                  />
+                )}
               </div>
 
               {orders.length === 0 ? (
@@ -364,40 +516,78 @@ export default function Account() {
                     Перейти в каталог
                   </Link>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {orders.map((order) => (
-                    <Link
-                      key={order.id}
-                      to={`/orders/${order.id}`}
-                      className="block p-4 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:shadow-sm hover:no-underline"
-                      style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
-                    >
-                      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-                        <span className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
-                          Заказ #{order.id}
-                        </span>
-                        <span
-                          className="py-1 px-2.5 rounded-[20px] text-xs font-semibold text-white"
-                          style={{ backgroundColor: getStatusColor(order.status) }}
-                        >
-                          {order.status_display}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[13px]" style={{ color: 'var(--muted)' }}>
-                          {formatDate(order.created_at)}
-                        </span>
-                        <span className="text-[15px] font-bold" style={{ color: 'var(--text)' }}>
-                          {formatPrice(order.grand_total)}
-                        </span>
-                      </div>
-                      <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
-                        {order.items_count} {order.items_count === 1 ? "товар" : order.items_count < 5 ? "товара" : "товаров"}
-                      </div>
-                    </Link>
-                  ))}
+              ) : filteredOrders.length === 0 ? (
+                <div className="text-center py-10 px-5">
+                  <svg
+                    className="mb-4"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                  <p className="m-0 mb-5 text-[15px]" style={{ color: 'var(--muted)' }}>
+                    По вашему запросу заказов не найдено
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchTerm("");
+                      setCurrentPage(1);
+                    }}
+                    className="inline-flex items-center justify-center py-3 px-4.5 bg-transparent border border-[var(--border)] rounded-[10px] text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[var(--bg)]"
+                    style={{ color: 'var(--text)' }}
+                  >
+                    Сбросить поиск
+                  </button>
                 </div>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-3">
+                    {currentOrders.map((order) => (
+                      <Link
+                        key={order.id}
+                        to={`/orders/${order.id}`}
+                        className="block p-4 rounded-xl border no-underline transition-all duration-200 hover:border-[var(--primary)] hover:shadow-sm hover:no-underline"
+                        style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                      >
+                        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                          <span className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>
+                            Заказ #{order.id}
+                          </span>
+                          <span
+                            className="py-1 px-2.5 rounded-[20px] text-xs font-semibold text-white"
+                            style={{ backgroundColor: getStatusColor(order.status) }}
+                          >
+                            {order.status_display}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                            {formatDate(order.created_at)}
+                          </span>
+                          <span className="text-[15px] font-bold" style={{ color: 'var(--text)' }}>
+                            {formatPrice(order.grand_total)}
+                          </span>
+                        </div>
+                        <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                          {order.items_count} {order.items_count === 1 ? "товар" : order.items_count < 5 ? "товара" : "товаров"}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <Pagination />
+
+                  {filteredOrders.length > 0 && (
+                    <div className="text-sm mt-4 pt-4 border-t text-center" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
+                      Показано {Math.min(indexOfLastOrder, filteredOrders.length)} из {filteredOrders.length} заказов
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
