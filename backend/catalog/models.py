@@ -66,10 +66,14 @@ class Brand(models.Model):
     """Бренд товаров"""
     name = models.CharField("Название", max_length=200)
     slug = models.SlugField("URL-адрес", max_length=220, unique=True)
+    logo = models.ImageField("Логотип", upload_to="brands/", blank=True, null=True)
+    is_featured = models.BooleanField("Показывать на главной", default=False)
+    sort = models.PositiveIntegerField("Сортировка", default=0)
 
     class Meta:
         verbose_name = "Бренд"
         verbose_name_plural = "Бренды"
+        ordering = ["sort", "name"]
 
     def save(self, *args, **kwargs):
         if not self.slug:

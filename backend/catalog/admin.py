@@ -205,9 +205,21 @@ class CategoryAdmin(ModelAdmin):
 
 @admin.register(Brand)
 class BrandAdmin(ModelAdmin):
-    list_display = ("name", "slug")
+    list_display = ("name", "logo_preview", "is_featured", "sort", "slug")
+    list_filter = ("is_featured",)
+    list_editable = ("is_featured", "sort")
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
+    ordering = ("sort", "name")
+
+    @display(description="Логотип")
+    def logo_preview(self, obj):
+        if obj.logo:
+            return format_html(
+                '<img src="{}" style="max-height: 40px; max-width: 80px;" />',
+                obj.logo.url
+            )
+        return "-"
 
 
 # ============================================

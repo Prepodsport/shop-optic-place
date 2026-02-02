@@ -666,10 +666,16 @@ export default function Catalog() {
                   const attr = filters.attributes.find((a) => a.slug === attrSlug);
                   const cachedAttr = attrNamesCache[attrSlug];
 
+                  // Не показываем если нет данных (ещё загружаются)
+                  const attrName = attr?.name || cachedAttr?.name;
+                  if (!attrName) return null;
+
                   return value.split(",").filter(Boolean).map((valSlug) => {
                     const val = attr?.values?.find((v) => v.slug === valSlug);
-                    const attrName = attr?.name || cachedAttr?.name || attrSlug;
-                    const valName = val?.value || cachedAttr?.values?.[valSlug] || valSlug;
+                    const valName = val?.value || cachedAttr?.values?.[valSlug];
+
+                    // Не показываем если нет названия значения
+                    if (!valName) return null;
 
                     return (
                       <span

@@ -21,9 +21,17 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class BrandSerializer(serializers.ModelSerializer):
+    logo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Brand
-        fields = ("id", "name", "slug")
+        fields = ("id", "name", "slug", "logo_url", "is_featured")
+
+    def get_logo_url(self, obj):
+        request = self.context.get("request")
+        if obj.logo and request:
+            return request.build_absolute_uri(obj.logo.url)
+        return None
 
 
 # ============================================

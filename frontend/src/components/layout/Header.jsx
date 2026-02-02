@@ -14,6 +14,7 @@ const Header = forwardRef(function Header(_, ref) {
   const [isSearching, setIsSearching] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [siteSettings, setSiteSettings] = useState(null);
   const searchRef = useRef(null);
   const userMenuRef = useRef(null);
   const { totalItems } = useCart();
@@ -24,6 +25,19 @@ const Header = forwardRef(function Header(_, ref) {
 
   const typingPlaceholder = useTypingPlaceholder(searchPlaceholders, 100, 50, 2000);
   const isLoggedIn = Boolean(getTokens().access);
+
+  // Загрузка настроек сайта
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get("/content/settings/");
+        setSiteSettings(res.data);
+      } catch (err) {
+        console.error("Ошибка загрузки настроек:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -105,26 +119,38 @@ const Header = forwardRef(function Header(_, ref) {
   return (
     <header
       ref={ref}
-      className="sticky z-[100] py-3 border-b transition-[top] duration-300"
+      className="sticky z-[100] py-3 border-b transition-[top] duration-300 md:py-2"
       style={{
         background: 'var(--bg)',
         borderColor: 'var(--border)',
         top: 'var(--top-offset, 0px)'
       }}
     >
-      <div className="max-w-[1600px] mx-auto px-4 flex items-center justify-between gap-6 md:gap-3">
+      <div className="max-w-[1600px] mx-auto px-4 flex items-center gap-6 lg:gap-4 md:gap-3">
         {/* Логотип */}
         <Link
           to="/"
-          className="flex items-center gap-2 no-underline hover:no-underline shrink-0"
+          className="flex items-center gap-3 no-underline hover:no-underline shrink-0"
           style={{ color: 'var(--text)' }}
         >
-          <span className="text-[28px]">👓</span>
-          <span className="text-xl font-bold tracking-tight hidden md:inline">OpticPlace</span>
+          {siteSettings?.logo_url ? (
+            <img
+              src={siteSettings.logo_url}
+              alt={siteSettings.site_name || "Логотип"}
+              className="h-[50px] lg:h-[45px] md:h-[40px] w-auto object-contain"
+            />
+          ) : (
+            <>
+              <span className="text-[48px] lg:text-[42px] md:text-[36px]">👓</span>
+              <span className="text-3xl lg:text-2xl md:text-xl font-bold tracking-tight sm:hidden">
+                {siteSettings?.logo_text || "OpticPlace"}
+              </span>
+            </>
+          )}
         </Link>
 
-        {/* Поиск */}
-        <div className="flex-1 max-w-[500px] mx-auto relative md:max-w-none" ref={searchRef}>
+        {/* Поиск - на всю оставшуюся ширину */}
+        <div className="flex-1 relative" ref={searchRef}>
           <form onSubmit={handleSearch} className="flex relative">
             <input
               type="text"
@@ -213,8 +239,19 @@ const Header = forwardRef(function Header(_, ref) {
           )}
         </div>
 
+        {/* Кнопка "Записаться к врачу" */}
+        <Link
+          to="/booking"
+          className="booking-btn hidden sm:flex items-center gap-2.5 px-5 py-3 rounded-xl text-white font-semibold text-[15px] no-underline shrink-0 transition-all duration-200 hover:-translate-y-0.5 lg:px-4 lg:py-2.5 lg:text-sm"
+        >
+          <svg className="w-5 h-5 lg:w-4 lg:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>Записаться к врачу</span>
+        </Link>
+
         {/* Иконки справа */}
-        <div className="flex items-center gap-2 shrink-0 sm:gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {/* Переключатель темы */}
           <button
             className="relative bg-transparent border-none p-2.5 rounded-[10px] cursor-pointer transition-colors duration-200 flex items-center justify-center hover:bg-[var(--card)] hover:text-[var(--primary)] md:p-2"

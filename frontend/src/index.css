@@ -121,6 +121,27 @@
     @apply px-3 py-1.5 text-sm;
   }
 
+  /* Кнопка записи к врачу */
+  .booking-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  }
+
+  .booking-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  }
+
+  :root[data-theme="dark"] .booking-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+  }
+
+  :root[data-theme="dark"] .booking-btn:hover {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+  }
+
   /* Карточка */
   .card {
     @apply rounded-[14px] p-4;

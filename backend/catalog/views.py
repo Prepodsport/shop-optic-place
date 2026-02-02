@@ -17,7 +17,7 @@ from .serializers import (
 class CatalogPagination(PageNumberPagination):
     page_size = 24
     page_size_query_param = "page_size"
-    max_page_size = 100
+    max_page_size = 10
 
 
 class ProductFilter(FilterSet):
@@ -105,6 +105,14 @@ class BrandViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer
     lookup_field = "slug"
+
+    @action(detail=False, methods=["get"])
+    def featured(self, request):
+        """Бренды для главной страницы (с логотипами)."""
+        brands = Brand.objects.filter(is_featured=True, logo__isnull=False)
+        brands = brands.exclude(logo="").order_by("sort", "name")[:12]
+        serializer = self.get_serializer(brands, many=True)
+        return Response(serializer.data)
 
 
 class AttributeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -326,9 +334,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if settings.show_category_count:
             categories = Category.objects.filter(is_active=True).annotate(
                 product_count=Count("products", filter=Q(products__is_active=True))
-            )
+            ).order_by("sort", "name")
         else:
-            categories = Category.objects.filter(is_active=True)
+            categories = Category.objects.filter(is_active=True).order_by("sort", "name")
 
         categories_data = []
         for cat in categories:
@@ -345,9 +353,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                     products__id__in=product_ids
                 ).annotate(
                     product_count=Count("products", filter=Q(products__id__in=product_ids))
-                ).distinct()
+                ).distinct().order_by("name")
             else:
-                brands = Brand.objects.filter(products__id__in=product_ids).distinct()
+                brands = Brand.objects.filter(products__id__in=product_ids).distinct().order_by("name")
         else:
             brands = Brand.objects.none()
 

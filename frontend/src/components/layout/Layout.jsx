@@ -1,5 +1,6 @@
 import { useState, useCallback, useLayoutEffect, useRef } from "react";
 import TopHeader from "./TopHeader.jsx";
+import InfoBar from "./InfoBar.jsx";
 import Header from "./Header.jsx";
 import MegaMenu from "./MegaMenu.jsx";
 import Footer from "./Footer.jsx";
@@ -42,6 +43,7 @@ export default function Layout({ children }) {
       }}
     >
       <TopHeader onStateChange={handleTopState} />
+      <InfoBar />
       <Header ref={headerRef} />
       <MegaMenu />
       <main className="flex-1 py-6">{children}</main>

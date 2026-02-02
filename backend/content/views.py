@@ -1,8 +1,23 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import TopHeader, Banner
-from .serializers import TopHeaderSerializer, BannerSerializer
+from rest_framework.views import APIView
+from .models import TopHeader, Banner, Service, SiteSettings
+from .serializers import (
+    TopHeaderSerializer,
+    BannerSerializer,
+    ServiceSerializer,
+    SiteSettingsSerializer,
+)
+
+
+class SiteSettingsView(APIView):
+    """API для получения настроек сайта."""
+
+    def get(self, request):
+        settings = SiteSettings.get_settings()
+        serializer = SiteSettingsSerializer(settings, context={"request": request})
+        return Response(serializer.data)
 
 
 class TopHeaderViewSet(viewsets.ReadOnlyModelViewSet):
@@ -26,3 +41,10 @@ class BannerViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Banner.objects.filter(is_active=True)
     serializer_class = BannerSerializer
+
+
+class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
+    """API для получения услуг."""
+
+    queryset = Service.objects.filter(is_active=True)
+    serializer_class = ServiceSerializer

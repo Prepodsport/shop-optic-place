@@ -468,7 +468,7 @@ export default function LensReminders() {
 
         {/* Информация */}
         <div
-          className="rounded-xl p-6 border"
+          className="rounded-xl p-6 border mt-5"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           <h3 className="text-base font-semibold m-0 mb-3" style={{ color: 'var(--text)' }}>
